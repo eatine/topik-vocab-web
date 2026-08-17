@@ -1,0 +1,15 @@
+{
+  "name": "TOPIK 词汇系统",
+  "short_name": "TOPIK词汇",
+  "description": "TOPIK 真题词汇查词、测试、记忆曲线复习一体工具",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f6fa",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
