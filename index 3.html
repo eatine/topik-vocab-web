@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TOPIK词汇">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>TOPIK 统一词汇系统 · 查词 + 测试 + 记忆曲线</title>
+<style>
+  :root {
+    --bg:#f5f6fa; --card:#fff; --border:#e0e4ec; --text:#1a1a2e; --text-2:#5b6472;
+    --accent:#2563eb; --accent-light:#eaf1ff; --green:#059669; --green-light:#e6f7f0;
+    --red:#dc2626; --red-light:#fdeaea; --orange:#d97706; --orange-light:#fef4e4;
+    --purple:#7c3aed; --purple-light:#f1ebfe; --teal:#0d9488; --teal-light:#e0f5f3;
+    --radius:14px; --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC",sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding-bottom:80px}
+  .container{max-width:820px;margin:0 auto;padding:0 16px}
+
+  .header{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:24px 20px 18px;border-radius:0 0 24px 24px;text-align:center;margin-bottom:16px}
+  .header h1{font-size:1.45rem;font-weight:800}
+  .header p{font-size:.84rem;opacity:.9;margin-top:3px}
+  .stats{display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .st{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:6px 14px;text-align:center;min-width:78px}
+  .st .n{font-size:1.1rem;font-weight:800}.st .l{font-size:.66rem;opacity:.85}
+
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);margin-bottom:18px}
+  .nav-inner{display:flex;gap:2px;overflow-x:auto;max-width:820px;margin:0 auto;padding:0 8px}
+  .nav-btn{white-space:nowrap;padding:12px 15px;font-size:.87rem;font-weight:600;color:var(--text-2);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent}
+  .nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .panel{display:none}.panel.active{display:block;animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{font-size:1.1rem;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card h3{font-size:.95rem;font-weight:700;margin:16px 0 6px}
+  .card p,.card li{font-size:.9rem;color:var(--text-2)}
+  .card ul,.card ol{padding-left:20px;margin:6px 0}
+
+  .mode-btn{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:.83rem;font-weight:700;color:var(--text-2);cursor:pointer}
+  .mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  .btn{padding:10px 22px;border:none;border-radius:9px;font-size:.88rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
+  .btn.ghost{background:#fff;color:var(--accent);border:1.5px solid var(--accent)}
+  .btn.green{background:var(--green)}
+  .btn.orange{background:var(--orange)}
+  .btn.purple{background:var(--purple)}
+  .btn.danger{background:var(--red-light);color:var(--red);border:1.5px solid #f3c2c2}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0}
+  .opt{border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.83rem;background:#fff;color:var(--text-2)}
+  .opt.sel{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:700}
+
+  .count-row{display:flex;align-items:center;gap:12px;margin:12px 0;flex-wrap:wrap}
+  .count-row label{font-size:.84rem;color:var(--text-2)}
+  .count-row input{width:70px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem}
+
+  .start-btn{width:100%;padding:13px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:1rem;font-weight:800;cursor:pointer}
+  .start-btn:hover{opacity:.9}
+
+  .quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .quiz-progress{font-size:.85rem;color:var(--text-2);font-weight:600}
+  .quiz-score{font-size:.85rem;font-weight:800}
+  .quiz-card{text-align:center;padding:26px 18px}
+  .q-word{font-size:2.2rem;font-weight:800;margin-bottom:6px;letter-spacing:1px}
+  .q-word.rev{font-size:1.3rem;line-height:1.5}
+  .q-hint{font-size:.82rem;color:var(--text-2);margin-bottom:16px}
+  .q-input{width:100%;max-width:420px;padding:12px 16px;font-size:1.02rem;border:2px solid var(--border);border-radius:10px;text-align:center;outline:none}
+  .q-input:focus{border-color:var(--accent)}
+  .q-submit{margin-top:12px;padding:10px 32px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:.92rem;font-weight:700;cursor:pointer}
+
+  .feedback{margin-top:14px;padding:14px 18px;border-radius:10px;font-size:.88rem;text-align:left;display:none}
+  .feedback.correct{background:var(--green-light);color:var(--green);border:1px solid #b7e4d0;display:block}
+  .feedback.wrong{background:var(--red-light);color:var(--red);border:1px solid #f3c2c2;display:block}
+  .feedback .ans{font-weight:800;font-size:1.02rem}
+  .feedback .extra{margin-top:8px;color:var(--text-2);line-height:1.8}
+  .feedback .extra b{color:var(--text)}
+  .fb-colloc{background:rgba(255,255,255,.6);border-radius:8px;padding:8px 12px;margin-top:6px}
+  .fb-essay{background:var(--purple-light);border-left:3px solid var(--purple);border-radius:6px;padding:8px 12px;margin-top:8px;font-size:.85rem}
+  .fb-essay .ko-line{font-weight:700;color:var(--purple)}
+  .self-correction{margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .self-btn{padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text-2)}
+  .self-btn.yes{border-color:var(--green);color:var(--green)}
+  .self-btn.no{border-color:var(--red);color:var(--red)}
+
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .choice{padding:11px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:.9rem;background:#fff;text-align:left}
+  .choice:hover{border-color:var(--accent)}
+  .choice.correct{border-color:var(--green);background:var(--green-light)}
+  .choice.wrong{border-color:var(--red);background:var(--red-light)}
+  .choice.disabled{pointer-events:none;opacity:.7}
+  .choice .opt-letter{font-weight:800;color:var(--accent);margin-right:6px}
+
+  .result-score{text-align:center;padding:26px 18px}
+  .big-score{font-size:2.8rem;font-weight:800;color:var(--accent)}
+  .res-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:.87rem}
+  .res-row .ko{font-weight:700}
+  .res-row.ok{color:var(--green)}.res-row.no{color:var(--red)}
+
+  .word-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px}
+  .wl-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.84rem;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .wl-item .ko{font-weight:700;white-space:nowrap}
+  .wl-item .zh{color:var(--text-2);font-size:.76rem;flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st-ok{color:var(--green);font-size:.72rem;font-weight:700}
+  .st-no{color:var(--red);font-size:.72rem;font-weight:700}
+  .st-wait{color:var(--text-2);font-size:.72rem}
+
+  textarea{width:100%;min-height:130px;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;font-family:inherit;resize:vertical;outline:none}
+  textarea:focus{border-color:var(--accent)}
+  input[type=text]{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:.92rem;outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+
+  .prompt-box{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;font-size:.82rem;font-family:ui-monospace,Menlo,monospace;line-height:1.7;white-space:pre-wrap;margin:10px 0;max-height:300px;overflow-y:auto}
+  .copy-hint{font-size:.78rem;color:var(--text-2);margin:6px 0 10px}
+  .review-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px;background:#fff;font-size:.88rem}
+  .review-item .stage{font-weight:800;color:var(--purple);background:var(--purple-light);border-radius:6px;padding:2px 9px;font-size:.78rem}
+  .review-item .ko{font-weight:700}
+  .review-item .meta{font-size:.76rem;color:var(--text-2)}
+  .empty-hint{text-align:center;color:var(--text-2);padding:24px 0;font-size:.9rem}
+
+  .chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.75rem;font-weight:600;margin:2px 3px 2px 0}
+  .chip-blue{background:var(--accent-light);color:var(--accent)}
+  .chip-purple{background:var(--purple-light);color:var(--purple)}
+  .chip-green{background:var(--green-light);color:var(--green)}
+  .chip-orange{background:var(--orange-light);color:var(--orange)}
+  .chip-red{background:var(--red-light);color:var(--red)}
+
+  .hidden{display:none!important}
+  .section-title{font-size:1rem;font-weight:800;margin:16px 0 8px}
+  .help-text{font-size:.8rem;color:var(--text-2);background:var(--accent-light);border-radius:8px;padding:10px 14px;margin:10px 0;line-height:1.7}
+
+  @media(max-width:600px){.choices{grid-template-columns:1fr}.q-word{font-size:1.8rem}.container{padding:0 10px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📖 TOPIK 统一词汇系统</h1>
+  <p>查词入库 · 多维测试 · 记忆曲线 · 日志同步</p>
+  <div class="stats">
+    <div class="st"><div class="n" id="st-total">0</div><div class="l">词库</div></div>
+    <div class="st"><div class="n" id="st-mastered">0</div><div class="l">已掌握</div></div>
+    <div class="st"><div class="n" id="st-failed">0</div><div class="l">待巩固</div></div>
+    <div class="st"><div class="n" id="st-today">0</div><div class="l">今日复习</div></div>
+  </div>
+</div>
+
+<nav><div class="nav-inner">
+  <button class="nav-btn active" onclick="showPanel('lookup')">🔍 查词</button>
+  <button class="nav-btn" onclick="showPanel('test')">🎯 测试</button>
+  <button class="nav-btn" onclick="showPanel('review')">🧠 复习</button>
+  <button class="nav-btn" onclick="showPanel('sync')">🔄 日志同步</button>
+  <button class="nav-btn" onclick="showPanel('bank')">📚 词库</button>
+</div></nav>
+
+<div class="container">
+
+<!-- ============ 查词 ============ -->
+<div id="panel-lookup" class="panel active">
+  <div class="card">
+    <h2>🔍 查词入库</h2>
+    <p style="margin-bottom:10px;">输入韩文词（多个用逗号分隔），生成标准分析指令 → 发给 AI → 把分析结果粘贴回来 → 自动入库进入复习循环。</p>
+    <input type="text" id="lk-input" placeholder="例如：요청하다, 수용하다, 검토하다">
+    <button class="btn" style="margin-top:10px;width:100%;" onclick="genPrompt()">📋 生成查词指令</button>
+    <div id="lk-prompt-box" class="hidden">
+      <div class="copy-hint">复制下面指令发给 AI（如本对话），AI 按模板返回分析：</div>
+      <div class="prompt-box" id="lk-prompt-text"></div>
+      <button class="btn ghost" onclick="copyText('lk-prompt-text')">📎 复制指令</button>
+    </div>
+    <h3 style="margin-top:18px;">粘贴 AI 分析结果</h3>
+    <p style="margin-bottom:8px;">按「标签：内容」格式粘贴（AI 会按模板输出），导入后自动加入词库和复习队列。</p>
+    <textarea id="lk-import" placeholder="词条：요청하다&#10;汉字词源：要請 + 하다&#10;含义：[动]请求，要求&#10;词性：动词（他动词）&#10;等级：3-4급&#10;活用：요청해요 / 요청한&#10;例句：고객이 추가 서비스를 요청했다.&#10;搭配：도움을 요청하다 | 지원을 요청하다 | 협조를 요청하다&#10;近义词：부탁하다(口语) | 신청하다(申请) | 요구하다(强硬)&#10;反义词：거절하다 | 거부하다&#10;同源词：요청[名] | 요청서[名] | 요청되다[被动]&#10;听力场景：客服对话 / 商务邮件&#10;敬语：요청드리다&#10;真题例句：고객이 추가 서비스를 요청했으나…（52회 듣기 12번）&#10;写作词：是&#10;大作文句式：[정책]이/가 국민을 납득시키기 위해서는 [조건]이 필요하다."></textarea>
+    <button class="btn green" style="margin-top:10px;width:100%;" onclick="importWords()">📥 导入词库</button>
+  </div>
+</div>
+
+<!-- ============ 测试 ============ -->
+<div id="panel-test" class="panel">
+  <div class="card">
+    <h2>🎯 词汇测试</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <button class="mode-btn active" data-mode="k2c">👀 韩→中</button>
+      <button class="mode-btn" data-mode="c2k">✍️ 中→韩</button>
+      <button class="mode-btn" data-mode="choice">🧩 四选一</button>
+      <button class="mode-btn" data-mode="colloc">🔗 搭配检测</button>
+      <button class="mode-btn" data-mode="listen">🔊 听音辨字</button>
+    </div>
+    <div class="opt-grid" id="range-opts">
+      <div class="opt sel" data-range="all">全部词汇</div>
+      <div class="opt" data-range="untested">未测过</div>
+      <div class="opt" data-range="wrong">错词本</div>
+      <div class="opt" data-range="mastered">已掌握</div>
+      <div class="opt" data-range="due">今日到期</div>
+      <div class="opt" data-range="essay">✍️ 写作高频</div>
+    </div>
+    <div class="count-row">
+      <label>本轮数量：</label>
+      <input type="number" id="batch-num" value="20" min="5" max="200">
+    </div>
+    <button class="start-btn" onclick="startQuiz()">🚀 开始测试</button>
+  </div>
+
+  <div class="card hidden" id="quiz-card">
+    <div class="quiz-head">
+      <span class="quiz-progress" id="q-progress"></span>
+      <span class="quiz-score" id="q-score"></span>
+    </div>
+    <div class="quiz-card">
+      <div class="q-word" id="q-word"></div>
+      <div class="q-hint" id="q-hint"></div>
+      <input class="q-input hidden" id="q-input" placeholder="输入答案..." autocomplete="off">
+      <div class="choices hidden" id="q-choices"></div>
+      <button class="q-submit hidden" id="q-submit" onclick="submitAnswer()">✓ 提交</button>
+      <div class="feedback" id="q-feedback"></div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="result-card">
+    <div class="result-score">
+      <div class="big-score" id="r-score">0%</div>
+      <div style="color:var(--text-2);font-size:.9rem;">本轮正确率</div>
+    </div>
+    <div id="r-detail"></div>
+    <button class="btn" onclick="startQuiz()">🔄 再来一轮</button>
+    <button class="btn ghost" onclick="showPanel('test')">🏠 返回设置</button>
+  </div>
+</div>
+
+<!-- ============ 复习 ============ -->
+<div id="panel-review" class="panel">
+  <div class="card">
+    <h2>🧠 今日记忆曲线复习</h2>
+    <p style="margin-bottom:8px;">按艾宾浩斯间隔自动计算今日到期的词：学习后 5分钟/30分钟/睡前（R1-R3），第1/2/4/7/15/30/60天（D1-D60）。</p>
+    <div id="review-list"></div>
+    <button class="btn purple" style="margin-top:8px;width:100%;" onclick="startDueQuiz()">🚀 复习今日到期词</button>
+  </div>
+</div>
+
+<!-- ============ 日志同步 ============ -->
+<div id="panel-sync" class="panel">
+  <div class="card">
+    <h2>📲 设备同步（电脑 ↔ 手机）</h2>
+    <p style="margin-bottom:8px;">在电脑端生成同步码 → 复制 → 微信发到手机 → 手机粘贴导入。两边进度<b>智能合并</b>（不覆盖，取更优状态），几分钟完成。</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button class="btn purple" onclick="genSyncCode()">📤 生成同步码（本机 → 另一设备）</button>
+    </div>
+    <div class="prompt-box hidden" id="sync-code-out"></div>
+    <button class="btn ghost hidden" id="sync-copy-btn" onclick="copySyncCode()">📎 复制同步码</button>
+    <h3 style="margin-top:16px;">导入同步码（从另一设备粘贴过来）</h3>
+    <textarea id="sync-code-in" placeholder="粘贴对方设备生成的同步码，自动识别并合并进度..."></textarea>
+    <button class="btn green" style="margin-top:10px;width:100%;" onclick="importSyncCode()">📥 导入并合并</button>
+  </div>
+  <div class="card">
+    <h2>🔄 日志同步（与备考助手共享进度）</h2>
+    <p style="margin-bottom:8px;">网页的测试进度保存在本浏览器。要同步到工作区日志（备考助手读取的文件），点下方导出 → 粘贴给 AI → AI 更新 <code>topik-vocabulary-log.md</code>。也可以导入 AI 更新后的日志回网页。</p>
+    <button class="btn" style="width:100%;" onclick="exportLog()">📤 导出日志文本</button>
+    <div class="prompt-box hidden" id="log-export"></div>
+    <button class="btn ghost hidden" id="copy-log-btn" onclick="copyText('log-export')">📎 复制日志</button>
+    <h3 style="margin-top:16px;">导入日志（从 AI 同步回来）</h3>
+    <textarea id="log-import" placeholder="粘贴 topik-vocabulary-log.md 的内容，导入记忆状态..."></textarea>
+    <button class="btn green" style="margin-top:10px;width:100%;" onclick="importLog()">📥 导入日志状态</button>
+  </div>
+  <div class="card">
+    <h2>📊 进度统计</h2>
+    <div id="stat-detail"></div>
+    <div class="card" style="background:var(--orange-light); border-color:#f5d9a8; margin-top:10px;" id="storage-warn">
+      <p style="font-size:.84rem;"><b>⚠️ 数据保存说明：</b>预览地址的端口每次可能变化，导致浏览器把网页视为不同站点、读不到之前保存的进度。解决：<b>①</b> 每次做完用下方「💾 导出备份」下载存档；<b>②</b> 重新打开后若数据丢失，用「📂 导入备份」恢复；<b>③</b> 或部署到固定网址（本对话可帮你部署）。</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button class="btn green" onclick="exportBackup()">💾 导出备份（下载存档）</button>
+      <button class="btn orange" onclick="importBackup()">📂 导入备份（恢复）</button>
+    </div>
+    <button class="btn danger" style="margin-top:12px;" onclick="resetProgress()">🗑️ 清空全部进度（保留词库）</button>
+  </div>
+</div>
+
+<!-- ============ 词库 ============ -->
+<div id="panel-bank" class="panel">
+  <div class="card">
+    <h2>📚 词汇库总览</h2>
+    <div class="opt-grid" id="bank-filter">
+      <div class="opt sel" data-f="all">全部</div>
+      <div class="opt" data-f="wrong">错词本</div>
+      <div class="opt" data-f="mastered">已掌握</div>
+      <div class="opt" data-f="untested">未测过</div>
+      <div class="opt" data-f="essay">写作高频</div>
+    </div>
+    <div class="word-list" id="word-list"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ================= 内置词库（165词 + 可扩展） =================
+const BASE_WORDS = [
+  ["가동률","开工率，运转率","名","[가동뉼]"],["가리키다","指，指向","动"],["가치","价值","名"],["갈망하다","渴望，热望","动"],
+  ["감소","减少","名"],["감안하다","考虑到，鉴于","动"],["개인차","个人差异","名"],["거래제","交易制度","名"],
+  ["걸다","挂，吊；打(电话)；押注","动"],["검증되다","被验证，得到证实","动"],["경영서","经营管理类书籍","名"],["경영진","经营团队，管理层","名"],
+  ["공감대","共识，共鸣","名"],["공론화","公论化，公开讨论","名"],["근거하다","根据，基于","动"],["근로자","劳动者","名","[글노자]"],
+  ["기쁨","喜悦，高兴","名"],["깨닫다","领悟，意识到","动","[깨닫따]"],["끼치다","招致，给…带来(影响/麻烦)","动"],["나누다","分享，分，划分","动"],
+  ["날아가다","飞走","动","[나라가다]"],["남다르다","与众不同，不同寻常","形"],["납득하다","理解，接受，信服","动","[납뜨카다]"],["내놓다","拿出，推出，发布","动","[내노타]"],
+  ["놓치다","错过，漏掉","动","[노치다]"],["늘어나다","增加，变多","动","[느러나다]"],["단절","断绝，中断","名"],["담다","盛，装，承载","动","[담따]"],
+  ["당분간","暂时，暂且","副"],["대비하다","防备，为…做准备；对比","动"],["대체하다","代替，取代","动"],["덜하다","减轻，少一些","形"],
+  ["데","地方，场合","依存"],["데리다","带(人)去，领","动"],["데우다","加热，温热","动"],["동조","同调，附和","名"],
+  ["되찾다","找回，恢复","动","[되찯따]"],["둔해지다","变迟钝，变不灵敏","动","[두내지다]"],["드러내다","露出，显露，暴露","动"],["등용","录用，提拔","名"],
+  ["따다","摘，采；夺得，取得","动"],["따지다","追究，计较","动"],["떠오르다","浮现，升起，想起","动"],["리더십","领导力","名"],
+  ["막상","实际上，真的到了…时","副","[막쌍]"],["만들다","制作，制造","动"],["매출","销售额，销售量","名"],["먹이","饲料，饵食","名","[머기]"],
+  ["묻다","问；埋；追究(责任)","动","[묻따]"],["물려주다","传给，留给(继承)","动"],["물리다","(被)咬；偿还(债务)","动"],["미치다","达到；波及，影响；发疯","动"],
+  ["바람직하다","值得期待的，可取的，理想的","形","[바람지카다]"],["밝히다","表明，阐明；照亮","动","[발키다]"],["배출권","排放权","名","[배출꿘]"],["버려지다","被丢弃，被抛弃","动"],
+  ["벌","惩罚，处罚","名"],["벌이다","开展，从事","动","[버리다]"],["보고하다","报告，汇报","动"],["보도되다","被报道","动","[보도뙤다]"],
+  ["보이다","显示，显现；可见","动"],["부각되다","被凸显，被强调","动","[부각뙤다]"],["부엌","厨房","名","[부억]"],["부재","缺席；缺乏","名"],
+  ["부적절하다","不合适的，不恰当的","形","[부적쩔하다]"],["불빛","灯光，火光","名","[불삗]"],["붐비다","拥挤，人多","动"],["붙잡다","抓住","动","[붙짭따]"],
+  ["비법","秘诀","名"],["비즈니스","商务，生意","名"],["빌리다","借","动"],["빳빳하다","硬挺的，僵硬的","形","[빳빠타다]"],
+  ["빽빽하다","密密麻麻，拥挤，稠密","形","[빽빼카다]"],["뿌리다","撒，播撒","动"],["사기","欺诈，诈骗；士气","名"],["사라지다","消失","动"],
+  ["살리다","救活，使…活","动"],["상대적","相对的","形"],["상속","继承","名"],["상의","上衣；商议","名"],
+  ["상징하다","象征","动"],["상하다","受伤，损坏","动","[상하다]"],["색상","颜色，色彩","名","[색쌍]"],["샛별","晨星，启明星","名","[새뼐ㄹ]"],
+  ["서로","互相","副"],["성급하다","急躁的，性急的","形","[성그파다]"],["세우다","建立，树立，制定","动"],["세종","世宗","名"],
+  ["소재","素材，材料，题材","名"],["소통","沟通","名"],["싣다","装载；刊登","动","[싣따]"],["실적","业绩，成绩","名"],
+  ["실천","实践","名"],["심층","深层，深处","名"],["심판","裁判；审判","名"],["쏟다","倒，倾注","动","[쏟따]"],
+  ["악영향","不良影响","名","[아경향]"],["안도하다","安心，放心","动"],["안타깝다","令人惋惜的，遗憾的","形","[안타깝따]"],["앞두다","临近，面临","动","[압뚜다]"],
+  ["얻다","得到，获得","动","[얻따]"],["없애다","消除，除掉","动","[업쌔다]"],["역량","能力，实力","名","[영냥]"],["연출하다","导演，编排","动"],
+  ["염려하다","担心，忧虑","动"],["온통","全都，整个","副"],["옮기다","移动，搬迁","动","[옴기다]"],["외로움","孤独","名"],
+  ["요청하다","请求，要求","动"],["욕구","欲望，需求","名","[욕꾸]"],["원망하다","埋怨，抱怨","动"],["유도","诱导，引导","名"],
+  ["유리알","玻璃珠","名"],["유행","流行，时尚","名"],["의지","意志；依靠","名"],["인식","认识，认知","名"],
+  ["인식하다","认识到，认知","动","[인시카다]"],["잃다","失去，丢失","动","[일타]"],["자라다","生长，成长","动"],["자리","位置，座位","名"],
+  ["자수성가","白手起家","名"],["잠재하다","潜伏，潜藏","动"],["장치","装置，设备","名"],["재계","财界，实业界","名"],
+  ["재심","复审，再审","名"],["쟁점","争论点，焦点","名"],["저해하다","阻碍，妨碍","动"],["적기","适当时机","名","[적끼]"],
+  ["적절하다","适当的，合适的","形","[적쩔하다]"],["절차","程序，手续","名"],["정착하다","定居；确立，扎根","动","[정차카다]"],["제기하다","提出(问题/诉讼)","动"],
+  ["제시하다","提示，出示，提出","动"],["제안하다","建议，提议","动"],["조장하다","助长，煽动","动"],["주로","主要地","副"],
+  ["쥐다","握，抓","动"],["지나다","经过，通过","动"],["지적","指出；知识性的","名"],["지켜보다","观察，注视着","动"],
+  ["직결되다","直接相连，直接相关","动","[직껼뙤다]"],["진정하다","平静下来；真正的","动"],["질적","质的，质量上的","形"],["집단","集体，群体","名","[집딴]"],
+  ["차선","车道；次善之策","名"],["착각하다","错觉，误会","动","[착까카다]"],["찬반","赞成与反对","名"],["창제","创制，创出","名"],
+  ["총량","总量","名"],["축소되다","被缩小，被缩减","动","[축쏘뙤다]"],["축적","积累，积蓄","名","[축쩍]"],["침해하다","侵犯，侵害","动"],
+  ["캠페인","运动，宣传活动","名"],["커지다","变大，扩大","动"],["키우다","培养，养大","动"],["타협점","妥协点","名","[타협쩜]"],
+  ["탁월하다","卓越的，杰出的","形","[타궐하다]"],["통합","统一，整合","名"],["팽팽하다","紧绷的；势均力敌","形"],["페인트","油漆","名"],
+  ["포털","门户网站","名"],["피해","受害，损失","名"],["할당하다","分配，配额","动"],["혼합하다","混合","动","[혼하파다]"],
+  ["지다","输，败；背，扛；承担；凋谢，落(山)","动"]
+,
+  ["거세다","猛烈，强烈","形","[거세다]"],
+  ["거치다","经过，经历","动"],
+  ["겉","外表，表面","名"],
+  ["겪다","经历，遭受","动"],
+  ["곤란하다","困难的，尴尬的","形"],
+  ["공모하다","共同谋划，合作","动"],
+  ["괘씸하다","可恨的，可恶的","形"],
+  ["궁금증","好奇心，疑问","名"],
+  ["기여하다","贡献","动"],
+  ["기존","既有的，现有的","名"],
+  ["나르다","搬运，运送","动"],
+  ["내세우다","推出，举出；炫耀","动"],
+  ["넌지시","悄悄地，委婉地","副"],
+  ["넘나들다","往返，穿梭","动","[넘나들다]"],
+  ["놀림","戏弄，嘲弄","名"],
+  ["눈부시다","耀眼的，刺眼的","形"],
+  ["눈부신","耀眼的（冠形）","形"],
+  ["달리다","跑；取决于","动"],
+  ["담담하다","淡然的，平静的","形"],
+  ["던지다","扔，投","动"],
+  ["두드리다","敲，叩","动"],
+  ["뚜렷하게","明显地，清晰地","副"],
+  ["뚜렷하다","明显的，清晰的","形"],
+  ["마련하다","准备，筹备；安排","动"],
+  ["막무가내","一意孤行，不讲道理","名"],
+  ["맡기다","托付，委托","动"],
+  ["매달리다","悬挂；执着于","动"],
+  ["명예롭다","光荣的，荣耀的","形"],
+  ["모이다","聚集，集合","动"],
+  ["무작정","盲目地，不管不顾地","副"],
+  ["반영하다","反映","动"],
+  ["받아들이다","接受，接纳","动","[받아드리다]"],
+  ["발의하다","提议，发起","动"],
+  ["벗어나다","摆脱，脱离","动"],
+  ["별의별","形形色色的，各种各样的","形"],
+  ["부산하다","忙碌的，热闹的","形"],
+  ["부피","体积，容积","名"],
+  ["불신","不信任，怀疑","名"],
+  ["빠져나가다","逃出，钻出去","动"],
+  ["삭막하다","荒凉的，冷清的","形"],
+  ["새침하다","冷淡的，爱答不理的","形"],
+  ["선명하다","鲜明的，清晰的","形"],
+  ["선정하다","选定，评选","动"],
+  ["수립하다","树立，建立","动"],
+  ["수표","支票","名"],
+  ["숙성하다","发酵，熟成","动"],
+  ["스며들다","渗透，渗入","动","[스며들다]"],
+  ["실시하다","实施，实行","动"],
+  ["실험","实验","名"],
+  ["심사하다","审查，评审","动"],
+  ["알맞다","合适的，恰当的","形"],
+  ["암울하다","阴郁的，黯淡的","形"],
+  ["어김없다","必定，丝毫不差","形"],
+  ["어르신","长辈，老人家","名"],
+  ["얼룩","污渍，斑点","名"],
+  ["여기다","认为，看作","动"],
+  ["열광하다","狂热，热衷","动"],
+  ["열풍","热潮，热风","名"],
+  ["외치다","喊叫，呼喊","动"],
+  ["우선적","优先的","形"],
+  ["원칙","原则","名"],
+  ["위조","伪造，仿造","名"],
+  ["유난하다","特别的，异常的","形"],
+  ["이끌다","带领，引导","动"],
+  ["이어지다","延续，连接","动"],
+  ["인출하다","取出，提取","动"],
+  ["일조하다","起到作用，做出贡献","动"],
+  ["입증되다","得到证明，被证实","动"],
+  ["재해석하다","重新解读","动"],
+  ["정직하다","正直的，诚实的","形"],
+  ["주입하다","灌输，注入","动"],
+  ["주행하다","行驶，驾驶","动"],
+  ["즉시","立即，马上","副"],
+  ["즐기다","享受，欣赏","动"],
+  ["지정되다","被指定","动"],
+  ["차지하다","占据，占领","动"],
+  ["초래하다","招致，引发","动"],
+  ["추진되다","被推进","动"],
+  ["치유하다","治愈","动"],
+  ["토론","讨论，辩论","名"],
+  ["풍요롭다","丰饶的，富足的","形"],
+  ["해소시키다","消除，化解","动"],
+  ["허탈하다","空虚的，失落的","形"],
+  ["혁신","革新，创新","名"],
+  ["휩쓸리다","被席卷，被扫荡","动"],
+  ["힘입다","得益于，凭借","动"],
+  ["그런가 하면","说起来，那么","连接","[그런가 하면]"]];
+
+// 常用搭配（写作高频词标注）
+const COLLOC = {
+  "요청하다":["도움을 요청하다 请求帮助","지원을 요청하다 请求支援","협조를 요청하다 请求协助","수정을 요청하다 请求修改","요청에 따라 按请求"],
+  "감안하다":["상황을 감안하다 考虑到情况","특성을 감안하다 鉴于特性","시간을 감안하다 考虑到时间"],
+  "납득하다":["국민을 납득시키다 让国民信服","납득하기 어렵다 难以接受","이유를 납득하다 理解缘由"],
+  "갈망하다":["성공을 갈망하다 渴望成功","자유를 갈망하다 渴望自由","변화를 갈망하다 渴望变化"],
+  "제기하다":["문제를 제기하다 提出问题","의문을 제기하다 提出疑问","소송을 제기하다 提起诉讼"],
+  "제시하다":["해결책을 제시하다 提出解决方案","기준을 제시하다 提出标准","방향을 제시하다 指明方向"],
+  "제안하다":["계획을 제안하다 提议计划","개선안을 제안하다 提出改进方案","의견을 제안하다 提出意见"],
+  "부각되다":["문제가 부각되다 问题凸显","중요성이 부각되다 重要性凸显","차이가 부각되다 差异凸显"],
+  "직결되다":["성적에 직결되다 与成绩直接相关","삶의 질에 직결되다 与生活质量直接挂钩","성공에 직결되다 与成功直接相连"],
+  "침해하다":["권리를 침해하다 侵犯权利","사생활을 침해하다 侵犯隐私","안전을 침해하다 危害安全"],
+  "정착하다":["새로운 도시에 정착하다 在新城市定居","제도가 정착하다 制度扎根","습관이 정착하다 习惯养成"],
+  "축적":["경험을 축적하다 积累经验","자본을 축적하다 积累资本","데이터를 축적하다 积累数据"],
+  "통합":["시스템을 통합하다 整合系统","의견을 통합하다 整合意见","자원을 통합하다 整合资源"],
+  "할당하다":["예산을 할당하다 分配预算","역할을 할당하다 分配角色","시간을 할당하다 分配时间"],
+  "미치다":["영향을 미치다 产生影响","범위에 미치다 波及范围","기준에 미치다 达到标准"],
+  "끼치다":["영향을 끼치다 产生影响","피해를 끼치다 造成损失","폐를 끼치다 添麻烦"],
+  "늘어나다":["인구가 늘어나다 人口增加","매출이 늘어나다 销售额增长","부담이 늘어나다 负担加重"],
+  "커지다":["영향력이 커지다 影响力变大","차이가 커지다 差距拉大","목소리가 커지다 声音变大"],
+  "키우다":["실력을 키우다 提升实力","자신감을 키우다 培养自信","취미를 키우다 培养爱好"],
+  "얻다":["경험을 얻다 获得经验","신뢰를 얻다 赢得信任","기회를 얻다 获得机会"],
+  "없애다":["문제를 없애다 消除问题","불평등을 없애다 消除不平等","오해를 없애다 消除误会"],
+  "소통":["소통이 원활하다 沟通顺畅","부모와 소통하다 与父母沟通","소통의 부재 缺乏沟通"],
+  "실천":["계획을 실천하다 付诸实践","약속을 실천하다 践行诺言","실천이 중요하다 实践重要"],
+  "역량":["역량을 갖추다 具备能力","역량을 발휘하다 发挥能力","전문 역량 专业能力"],
+  "인식":["인식이 바뀌다 观念转变","인식을 높이다 提高认识","문제 인식 问题意识"],
+  "인식하다":["문제로 인식하다 视为问题","중요성을 인식하다 认识到重要性","위험을 인식하다 认识到危险"],
+  "보도되다":["뉴스에 보도되다 被新闻报道","사건이 보도되다 事件被报道","언론에 보도되다 被媒体曝光"],
+  "피해":["피해를 입다 遭受损失","피해를 주다 造成损害","피해가 크다 损失严重"],
+  "악영향":["악영향을 미치다 造成不良影响","악영향을 끼치다 带来负面影响","악영향이 크다 负面影响大"],
+  "부재":["소통의 부재 缺乏沟通","정책의 부재 政策缺失","의식의 부재 意识缺失"],
+  "단절":["소통의 단절 沟通断绝","관계의 단절 关系断裂","단절을 극복하다 克服断裂"],
+  "바람직하다":["바람직한 방향 可取的方向","바람직한 태도 值得肯定的态度","바람직하지 않다 不可取"],
+  "적절하다":["적절한 조치 恰当的措施","적절한 시기 恰当的时机","적절하지 않다 不恰当"],
+  "탁월하다":["탁월한 능력 卓越的能力","탁월한 성과 卓越的成果","탁월한 선택 明智的选择"],
+  "부적절하다":["부적절한 행동 不当行为","부적절한 표현 不当措辞","부적절하다고 판단되다 被认为不妥"],
+  "공감대":["공감대를 형성하다 形成共识","공감대가 넓다 共识广泛","공감대를 얻다 获得共鸣"],
+  "근거하다":["사실에 근거하다 基于事实","데이터에 근거하다 依据数据","근거한 판단 有依据的判断"],
+  "되찾다":["자신감을 되찾다 找回自信","건강을 되찾다 恢复健康","평화를 되찾다 重获和平"],
+  "떠오르다":["아이디어가 떠오르다 想到点子","기억이 떠오르다 回忆起","해가 떠오르다 太阳升起"],
+  "밝히다":["입장을 밝히다 表明立场","진실을 밝히다 查明真相","원인을 밝히다 查明原因"],
+  "보고하다":["결과를 보고하다 汇报结果","상사에게 보고하다 向上司汇报","진행 상황을 보고하다 汇报进展"],
+  "쏟다":["노력을 쏟다 倾注努力","열정을 쏟다 倾注热情","시간을 쏟다 投入时间"],
+  "의지":["의지가 강하다 意志坚强","의지를 키우다 培养意志","가족에게 의지하다 依靠家人"],
+  "잃다":["자신감을 잃다 失去自信","기회를 잃다 失去机会","의식을 잃다 失去意识"],
+  "대체하다":["기존 제품을 대체하다 替代原有产品","인력을 대체하다 替代人力","수단을 대체하다 替代手段"],
+  "대비하다":["위험에 대비하다 防范风险","변화에 대비하다 应对变化","미리 대비하다 提前准备"],
+  "놓치다":["기회를 놓치다 错过机会","마감을 놓치다 错过截止","포인트를 놓치다 错过要点"],
+  "붙잡다":["기회를 붙잡다 抓住机会","손을 붙잡다 抓住手","희망을 붙잡다 抓住希望"],
+  "따다":["메달을 따다 夺得奖牌","점수를 따다 得分","자격증을 따다 考取证书"],
+  "따지다":["책임을 따지다 追究责任","원인을 따지다 追究原因","손익을 따지다 计较得失"],
+  "걸다":["전화를 걸다 打电话","약속을 걸다 立约","목숨을 걸다 豁出性命"],
+  "담다":["내용을 담다 承载内容","생각을 담다 蕴含想法","정성을 담다 倾注真心"],
+  "나누다":["경험을 나누다 分享经验","의견을 나누다 交流意见","역할을 나누다 分担角色"],
+  "묻다":["길을 묻다 问路","의견을 묻다 征求意见","책임을 묻다 追究责任"],
+  "옮기다":["집을 옮기다 搬家","중심을 옮기다 转移重心","파일을 옮기다 移动文件"],
+  "자라다":["아이가 자라다 孩子成长","관심이 자라다 兴趣增长","나무가 자라다 树生长"],
+  "드러내다":["문제를 드러내다 暴露问题","사실을 드러내다 揭露事实","의도를 드러내다 显露意图"],
+  "살리다":["기업을 살리다 挽救企业","전통을 살리다 复兴传统","의식을 살리다 救醒"],
+  "사라지다":["문제가 사라지다 问题消失","기회가 사라지다 机会消失","모습이 사라지다 身影消失"],
+  "보이다":["문제점이 보이다 看到问题","가능성이 보이다 看到可能性","해결책이 보이다 看到解决方案"],
+  "붐비다":["사람이 붐비다 人潮拥挤","거리가 붐비다 街道拥挤","매장이 붐비다 店铺拥挤"],
+  "지나다":["시간이 지나다 时间流逝","무더위가 지나다 酷暑过去","역을 지나다 经过车站"],
+  "지적":["문제점을 지적하다 指出问题","실수를 지적하다 指出失误","한계를 지적하다 指出局限"],
+  "지켜보다":["변화를 지켜보다 观望变化","아이를 지켜보다 看护孩子","결과를 지켜보다 观察结果"],
+  "착각하다":["사람을 착각하다 认错人","시간을 착각하다 记错时间","사실을 착각하다 误以为事实"],
+  "진정하다":["마음을 진정하다 平静心情","상황이 진정되다 局势平息","화를 진정하다 平息怒火"],
+  "벌이다":["사업을 벌이다 开展事业","행사를 벌이다 举办活动","캠페인을 벌이다 开展运动"],
+  "유행":["유행을 따르다 追赶流行","유행이 지나다 流行过去","유행에 민감하다 对时尚敏感"],
+  "상속":["재산을 상속하다 继承财产","상속 문제 继承问题","권리를 상속하다 继承权利"],
+  "물려주다":["재산을 물려주다 传下财产","전통을 물려주다 传承传统","경험을 물려주다 传授经验"],
+  "자수성가":["자수성가하다 白手起家","자수성가한 기업가 白手起家的企业家","자수성가의 예 白手起家的例子"],
+  "리더십":["리더십을 발휘하다 发挥领导力","리더십이 강하다 领导力强","리더십을 키우다 培养领导力"],
+  "등용":["인재를 등용하다 任用人才","신인을 등용하다 提拔新人","유능한 인재 등용 任用贤能"],
+  "창제":["문자를 창제하다 创制文字","제도를 창제하다 创立制度","역사를 창제하다 创造历史"],
+  "적기":["적기를 놓치다 错过时机","적기에 대처하다 及时应对","적기가 아니다 时机不对"],
+  "총량":["총량을 제한하다 限制总量","배출 총량 排放总量","총량이 늘다 总量增加"],
+  "배출권":["배출권을 거래하다 交易排放权","탄소 배출권 碳排权","배출권 거래제 排放权交易制度"],
+  "축소되다":["규모가 축소되다 规模缩小","예산이 축소되다 预算缩减","범위가 축소되다 范围缩小"],
+  "저해하다":["발전을 저해하다 阻碍发展","학습을 저해하다 妨碍学习","소통을 저해하다 妨碍沟通"],
+  "조장하다":["갈등을 조장하다 助长矛盾","불안을 조장하다 煽动不安","사기를 조장하다 助长士气"],
+  "성급하다":["성급한 판단 草率判断","성급하게 굴다 急于行动","성급한 결정 仓促决定"],
+  "잠재하다":["잠재된 문제 潜在问题","잠재된 위험 潜在风险","잠재된 역량 潜在能力"],
+  "염려하다":["미래를 염려하다 担忧未来","건강을 염려하다 担心健康","안전을 염려하다 担心安全"],
+  "안도하다":["소식을 듣고 안도하다 听到消息安心","마음이 안도되다 心里踏实","안도하는 표정 放心的表情"],
+  "원망하다":["세상을 원망하다 怨恨世界","부모를 원망하다 埋怨父母","운명을 원망하다 怨天尤人"],
+  "유도":["행동을 유도하다 诱导行为","소비를 유도하다 引导消费","사고를 유도하다 引发事故"],
+  "상징하다":["평화를 상징하다 象征和平","자유를 상징하다 象征自由","시대를 상징하다 象征时代"],
+  "연출하다":["드라마를 연출하다 执导电视剧","분위기를 연출하다 营造氛围","장면을 연출하다 编排场面"],
+  "혼합하다":["색을 혼합하다 混合颜色","재료를 혼합하다 混合材料","음악을 혼합하다 混音"],
+  "덜하다":["부담이 덜하다 负担较轻","고통이 덜하다 痛苦减轻","위험이 덜하다 风险较小"],
+  "둔해지다":["감각이 둔해지다 感觉迟钝","기억력이 둔해지다 记忆力变差","반응이 둔해지다 反应变慢"],
+  "상하다":["과일이 상하다 水果坏掉","기분이 상하다 心情受伤","몸이 상하다 身体受损"],
+  "데우다":["밥을 데우다 热饭","국을 데우다 热汤","물을 데우다 烧水"],
+  "데리다":["아이를 데리다 带孩子","손님을 데리러 가다 去接客人","동생을 데리다 带弟弟"],
+  "빌리다":["책을 빌리다 借书","돈을 빌리다 借钱","지식을 빌리다 借用知识"],
+  "뿌리다":["씨앗을 뿌리다 播种","물을 뿌리다 洒水","소문을 뿌리다 散布谣言"],
+  "쥐다":["손에 쥐다 握在手里","권력을 쥐다 掌握权力","기회를 쥐다 把握机会"],
+  "얻다":["기회를 얻다 获得机会","경험을 얻다 获得经验","신뢰를 얻다 赢得信任"],
+  "안타깝다":["안타까운 소식 令人惋惜的消息","안타깝게 생각하다 感到遗憾","안타까운 결과 令人遗憾的结果"],
+  "빽빽하다":["사람이 빽빽하다 人挨着人","빽빽하게 들어서다 密集排列","글이 빽빽하다 文字密密麻麻"],
+  "빳빳하다":["옷이 빳빳하다 衣服硬挺","종이가 빳빳하다 纸张挺括","태도가 빳빳하다 态度生硬"],
+  "남다르다":["남다른 재능 与众不同的才能","남다른 관심 特别的关注","남다른 노력 非凡的努力"],
+  "팽팽하다":["줄이 팽팽하다 绳子绷紧","세력이 팽팽하다 势力相当","긴장감이 팽팽하다 气氛紧张"],
+  "진정하다":["마음을 진정하다 平复心情","화를 진정하다 平息怒火","소동이 진정되다 骚乱平息"],
+  "갈망하다":["성공을 갈망하다 渴望成功","자유를 갈망하다 渴望自由","사랑을 갈망하다 渴望爱"],
+  "지다":["경기에서 지다 比赛中输","책임을 지다 承担责任","짐을 지다 背行李","빚을 지다 负债","꽃이 지다 花凋谢","해가 지다 太阳落山"]
+};
+
+// 大作文写作例句（写作高频词）：含中文翻译，可用于大作文论证
+const ESSAY = {
+  "요청하다":["[정책]을/를 위해 관련 부서에 지원을 요청하는 경우가 많다.（为推进[政策]，常向有关部门请求支援）","고객의 요청에 따라 서비스 방식을 개선하는 것이 바람직하다.（按客户要求改进服务方式是可取的）"],
+  "감안하다":["[상황]을 감안할 때, [조치]가 필요하다고 생각한다.（考虑到[情况]，我认为需要[措施]）","개인의 특성을 감안하여 맞춤형 지원이 이루어져야 한다.（应考虑个人特点，提供个性化支持）"],
+  "납득하다":["[정책]이/가 국민을 납득시키기 위해서는 충분한 설명과 투명한 절차가 필요하다.（[政策]要让国民信服，需充分说明和透明程序）","시민들에게 정책의 필요성을 납득시킬 수 있어야 정책이 성공할 수 있다.（只有让市民理解政策必要性，政策才能成功）"],
+  "갈망하다":["현대인들은 [가치]를 갈망하지만 바쁜 일상 속에서 얻기 어렵다.（现代人渴望[价值]，但在忙碌日常中难以获得）","사람들은 더 나은 삶을 갈망하며 변화를 추구한다.（人们渴望更好生活，追求变化）"],
+  "제기하다":["[문제]에 대한 의문이 제기되면서 논의가 시작되었다.（随着对[问题]提出疑问，讨论开始了）","많은 전문가들이 [문제]를 제기하고 있다.（许多专家正在提出[问题]）"],
+  "제시하다":["[해결책]을 제시하는 것이 중요하다.（提出[解决方案]很重要）","정부는 [방향]을 제시해야 할 책임이 있다.（政府有责任指明[方向]）"],
+  "제안하다":["[개선안]을 제안하는 목소리가 높아지고 있다.（提出[改进方案]的呼声越来越高）","전문가들은 [대안]을 제안하고 있다.（专家们正在提议[替代方案]）"],
+  "부각되다":["[문제]의 심각성이 점점 부각되고 있다.（[问题]的严重性日益凸显）","최근 [주제]의 중요성이 크게 부각되고 있다.（最近[主题]的重要性被大幅凸显）"],
+  "직결되다":["[요인]은 삶의 질에 직접 직결된다.（[因素]与生活质量直接相关）","경제 성장이 국민의 행복과 직접 직결되지는 않는다.（经济增长并不直接等于国民幸福）"],
+  "침해하다":["사생활을 침해하는 행위는 반드시 제재되어야 한다.（侵犯隐私的行为必须受到制裁）","[권리]를 침해하는 일이 없도록 주의해야 한다.（应注意不侵犯[权利]）"],
+  "정착하다":["새로운 제도가 사회에 정착하려면 시간이 필요하다.（新制度要在社会上扎根需要时间）","건강한 습관이 정착되면 삶의 질이 향상된다.（健康习惯养成后生活质量会提高）"],
+  "축적":["경험을 축적하는 것은 성장의 밑거름이 된다.（积累经验是成长的基石）","작은 노력의 축적이 큰 변화를 만든다.（小小努力的积累会带来巨大变化）"],
+  "통합":["서로 다른 의견을 통합하는 과정이 필요하다.（需要整合不同意见的过程）","다양한 문화를 통합하여 새로운 가치를 만들어 낼 수 있다.（可以整合多元文化创造新价值）"],
+  "할당하다":["한정된 자원을 공정하게 할당하는 것이 중요하다.（公平分配有限资源很重要）","예산을 적절히 할당하면 효율이 높아진다.（合理分配预算会提高效率）"],
+  "미치다":["기술 발전은 우리 생활에 큰 영향을 미친다.（技术发展对我们的生活产生巨大影响）","환경 문제는 미래 세대에게까지 영향을 미친다.（环境问题甚至影响到下一代）"],
+  "끼치다":["과도한 스마트폰 사용이 건강에 악영향을 끼친다.（过度使用智能手机对健康产生不良影响）","무분별한 개발이 자연에 피해를 끼치고 있다.（无节制开发正在损害自然）"],
+  "늘어나다":["취업 경쟁이 치열해지면서 스트레스가 늘어나고 있다.（随就业竞争加剧，压力不断增加）","혼자 사는 가구가 점점 늘어나고 있다.（独居家庭越来越多）"],
+  "커지다":["정보화 사회로 갈수록 개인정보 보호의 중요성이 커지고 있다.（越走向信息化社会，个人信息保护越重要）","세대 간의 차이가 점점 커지고 있다.（代际差异越来越大）"],
+  "키우다":["교육은 아이의 창의력을 키우는 데 중요한 역할을 한다.（教育对培养孩子创造力起重要作用）","꾸준한 노력을 통해 실력을 키울 수 있다.（通过持续努力可以提升实力）"],
+  "얻다":["자원봉사를 통해 소중한 경험을 얻을 수 있다.（通过志愿服务可获得宝贵经验）","신뢰를 얻기 위해서는 성실함이 필요하다.（要赢得信任需要诚实）"],
+  "없애다":["불평등을 없애기 위한 노력이 계속되어야 한다.（消除不平等的努力应持续下去）","사회적 편견을 없애는 것이 중요하다.（消除社会偏见很重要）"],
+  "소통":["가족 간의 소통이 부족하면 갈등이 생기기 쉽다.（家人之间缺乏沟通易产生矛盾）","원활한 소통은 사회 문제 해결의 첫걸음이다.（顺畅沟通是解决社会问题的第一步）"],
+  "실천":["아무리 좋은 계획도 실천하지 않으면 의미가 없다.（再好的计划不付诸实践也没有意义）","환경 보호는 일상에서의 작은 실천에서 시작된다.（环保始于日常中的小实践）"],
+  "역량":["변화하는 시대에 필요한 역량을 갖추는 것이 중요하다.（具备变革时代所需的能力很重要）","교육은 개인의 역량을 키우는 기초가 된다.（教育是提升个人能力的基础）"],
+  "인식":["환경 보호에 대한 인식이 점차 높아지고 있다.（人们对环保的认识逐渐提高）","문제에 대한 사회적 인식의 변화가 필요하다.（需要改变社会对问题的认识）"],
+  "보도되다":["미디어에 보도되는 정보를 무비판적으로 받아들여서는 안 된다.（不应不加批判地接受媒体报道的信息）","사건이 보도되면서 사회적 관심이 집중되었다.（事件被报道后，社会关注集中了起来）"],
+  "피해":["기후 변화로 인한 피해가 점점 커지고 있다.（气候变化造成的损失越来越大）","피해를 줄이기 위한 대책이 시급하다.（减少损失的对策刻不容缓）"],
+  "악영향":["과도한 경쟁은 청소년에게 악영향을 미칠 수 있다.（过度竞争可能对青少年产生不良影响）","미디어의 과몰입이 정신 건강에 악영향을 끼친다.（过度沉迷媒体对心理健康产生不良影响）"],
+  "부재":["제도적 장치의 부재로 문제가 해결되지 않고 있다.（由于缺乏制度性机制，问题一直得不到解决）","소통의 부재가 갈등의 원인이 되기도 한다.（缺乏沟通有时会成为矛盾的起因）"],
+  "단절":["세대 간의 단절을 줄이기 위한 노력이 필요하다.（需要努力减少代际隔阂）","소통의 단절을 극복하는 것이 중요하다.（克服沟通断裂很重要）"],
+  "바람직하다":["[행동]은 바람직한 사회를 만드는 데 기여한다.（[行为]有助于建设理想的社会）","건전한 소비 문화가 바람직하다고 생각한다.（我认为健康的消费文化是可取的）"],
+  "적절하다":["문제에 대한 적절한 대응이 필요하다.（需要对问题做出恰当的应对）","적절한 규제와 지원이 균형을 이루어야 한다.（适当的管制和支持应保持平衡）"],
+  "탁월하다":["그는 탁월한 리더십으로 팀을 이끌었다.（他以卓越的领导力带领团队）","탁월한 성과를 내기 위해서는 지속적인 노력이 필요하다.（要取得卓越成果需要持续努力）"],
+  "공감대":["문제 해결을 위한 사회적 공감대가 형성되고 있다.（正在形成解决问题的社会共识）","갈등 해소에는 공감대 형성이 필수적이다.（化解矛盾必须形成共识）"],
+  "근거하다":["정책은 과학적 근거에 기반해야 한다.（政策应以科学依据为基础）","판단은 객관적 사실에 근거해야 한다.（判断应基于客观事实）"],
+  "되찾다":["자연과의 조화를 되찾는 것이 필요하다.（需要重新找回与自然的和谐）","상실한 신뢰를 되찾기 위해 노력해야 한다.（应努力重建失去的信任）"],
+  "떠오르다":["최근 [주제]가 새로운 사회 문제로 떠오르고 있다.（最近[主题]成为新的社会问题浮现出来）","기후 변화가 세계적 화두로 떠오르고 있다.（气候变化成为全球性话题）"],
+  "밝히다":["정부는 정책의 방향을 명확히 밝혀야 한다.（政府应明确表明政策方向）","전문가들은 원인을 밝히기 위해 연구하고 있다.（专家们正在为查明原因而研究）"],
+  "의지":["강한 의지는 어려움을 극복하는 힘이 된다.（坚强的意志是克服困难的力量）","변화를 위한 의지가 무엇보다 중요하다.（变革的意志最为重要）"],
+  "잃다":["과도한 경쟁 속에서 인간성을 잃어가는 것은 아닌지 우려된다.（令人担忧的是，在过度竞争中是否正失去人性）","일과 삶의 균형을 잃지 않아야 한다.（不应失去工作与生活的平衡）"],
+  "대체하다":["플라스틱을 친환경 소재로 대체하는 움직임이 확산되고 있다.（用环保材料替代塑料的动向正在扩散）","인간의 노동을 완전히 대체할 수는 없다.（无法完全取代人类的劳动）"],
+  "대비하다":["미래의 변화에 대비하는 자세가 필요하다.（需要为未来变化做好准备）","자연재해에 대비한 시스템을 갖추어야 한다.（应建立应对自然灾害的体系）"],
+  "놓치다":["성장의 기회를 놓치지 않도록 노력해야 한다.（应努力不放过成长机会）","교육의 적기를 놓치면 회복하기 어렵다.（错过教育最佳时机就难以挽回）"],
+  "따다":["청년들은 취업 경쟁에서 기회를 따내기 위해 노력한다.（青年们努力在就业竞争中争取机会）","노력 끝에 좋은 성과를 땄다.（经过努力取得了好成绩）"],
+  "나누다":["기쁨을 나누면 두 배가 된다는 말이 있다.（俗话说分享快乐会加倍）","이웃과 따뜻함을 나누는 문화가 필요하다.（需要与邻居分享温暖的文化）"],
+  "살리다":["지역 경제를 살리기 위한 정책이 필요하다.（需要振兴地区经济的政策）","전통 문화를 살리는 노력이 이어지고 있다.（复兴传统文化的努力持续进行）"],
+  "사라지다":["마을의 공동체 문화가 점점 사라지고 있다.（村庄的共同体文化逐渐消失）","중소도시에서 일자리가 사라지고 있다.（中小城市的工作岗位正在消失）"],
+  "상속":["과도한 재산 상속이 기회의 불평등을 만든다.（过度的财产继承造成机会不平等）","상속 문제를 둘러싼 논쟁이 이어지고 있다.（围绕继承问题的争论持续不断）"],
+  "물려주다":["다음 세대에게 깨끗한 환경을 물려주어야 한다.（应把清洁环境传给下一代）","전통과 가치를 물려주는 것이 중요하다.（传承传统和价值很重要）"],
+  "자수성가":["자수성가한 인물은 청년들에게 귀감이 된다.（白手起家的人物是青年们的榜样）","자수성가의 정신이 사회에 필요하다.（社会需要白手起家的精神）"],
+  "리더십":["훌륭한 리더십은 조직의 성과를 좌우한다.（卓越领导力决定组织的业绩）","리더십은 타고나는 것이 아니라 키워지는 것이다.（领导力不是天生的，而是培养出来的）"],
+  "등용":["인재를 적재적소에 등용하는 것이 중요하다.（把人才放到合适的位置很重要）","능력 위주로 인재를 등용해야 한다.（应按照能力任用人才）"],
+  "적기":["문제 대응의 적기를 놓치면 피해가 커진다.（错过应对问题的最佳时机损失会扩大）","교육의 적기에 투자하는 것이 효과적이다.（在教育的最佳时机投资是有效的）"],
+  "축소되다":["예산이 축소되면서 복지 혜택이 줄어들었다.（预算缩减导致福利减少）","사회적 지원이 축소되는 것을 막아야 한다.（应阻止社会福利支持缩减）"],
+  "저해하다":["과도한 규제는 기업의 혁신을 저해한다.（过度管制阻碍企业创新）","정보 격차가 교육 기회를 저해하고 있다.（信息差距妨碍教育机会）"],
+  "조장하다":["과도한 경쟁이 불안을 조장할 수 있다.（过度竞争可能助长不安情绪）","편견을 조장하는 미디어 내용은 문제다.（助长偏见的内容是有问题的）"],
+  "성급하다":["성급한 판단은 오해를 불러일으킨다.（草率的判断会引发误解）","문제 해결에 성급해서는 안 된다.（解决问题不应操之过急）"],
+  "염려하다":["청년 실업 문제를 염려하는 목소리가 높다.（担忧青年失业问题的呼声很高）","미래 세대의 삶을 염려하는 시각이 필요하다.（需要担忧下一代生活的视角）"],
+  "유도":["정부는 건강한 소비를 유도하는 정책을 펼쳐야 한다.（政府应推行引导健康消费的政策）","대중교통 이용을 유도하는 것이 바람직하다.（引导使用公共交通是可取的）"],
+  "상징하다":["태극기는 우리 민족의 정체성을 상징한다.（太极旗象征着我们民族的认同）","해당 정책은 사회 변화를 상징한다.（该政策象征着社会变化）"],
+  "혼합하다":["다양한 문화가 혼합되면서 새로운 문화가 탄생한다.（多元文化交融会诞生新文化）","전통과 현대를 혼합한 도시가 주목받고 있다.（传统与现代融合的城市备受关注）"],
+  "안타깝다":["인재 유출이 계속되는 것은 안타까운 일이다.（人才流失持续令人惋惜）","청년들이 고향을 떠나는 현상이 안타깝다.（青年们离开家乡的现象令人遗憾）"],
+  "팽팽하다":["찬반 의견이 팽팽하게 맞서고 있다.（赞成与反对的意见针锋相对）","논쟁이 팽팽하지만 타협점을 찾아야 한다.（争论激烈，但应找到妥协点）"],
+  "남다르다":["그는 남다른 열정으로 목표를 이루었다.（他以非凡的热情实现了目标）","남다른 관심을 받는 분야가 되었다.（成为备受关注的特殊领域）"],
+  "진정하다":["갈등이 진정된 후에도 해결해야 할 과제는 남아 있다.（矛盾平息后仍留有需解决的课题）","불안감을 진정시키는 것이 중요하다.（安抚不安情绪很重要）"],
+  "지다":["[주체]는 [문제/사건]에 대한 책임을 져야 한다.（[主体]应当对[问题/事件]承担责任）","사과는 어떤 일의 결과에 책임을 지는 행위가 되어야 한다.（道歉应当是承担某事结果责任的行为）"]
+};
+
+// ================= 数据模型 =================
+const KEY = "topik_vocab_system_v2";
+const CURVE_STAGES = ["R1","R2","R3","D1","D2","D4","D7","D15","D30","D60"];
+const CURVE_OFFSETS = [0,0,0,1,2,4,7,15,30,60]; // 距学习日的天数偏移
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch(e){ return null; }
+}
+// 存储可用性检测
+function storageOK(){
+  try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }
+  catch(e){ return false; }
+}
+let data = loadData();
+function buildWord(w,i){
+  const ko = w[0];
+  return {
+    id: i,
+    ko,
+    zh: w[1],
+    pos: w[2],
+    pron: w[3] || "",   // 实际发音（音变后），如 법칙 → [법치기]
+    colloc: COLLOC[ko] ? COLLOC[ko].slice(0,4) : [],
+    essayFreq: !!ESSAY[ko],
+    essay: ESSAY[ko] || [],
+    learned: null,       // 学习日期 YYYY-MM-DD
+    curve: {},           // {stage: timestamp} 已完成轮次的日期
+    right: 0, wrong: 0,
+    status: "untested"   // mastered | failed | untested
+  };
+}
+if (!data || !data.words || !data.words.length) {
+  // 初始化内置词库
+  data = { words: BASE_WORDS.map(buildWord), meta: { created: today() } };
+  saveData();
+} else {
+  // 词库增量同步：将 BASE_WORDS 中尚未存在的新词并入已保存的数据
+  const known = new Set(data.words.map(w=>w.ko));
+  const merged = [];
+  BASE_WORDS.forEach((w,i)=>{ if(!known.has(w[0])) merged.push(buildWord(w, data.words.length + merged.length)); });
+  // 已存在词的发音补全（老数据没有 pron 字段）
+  data.words.forEach(w=>{
+    const src = BASE_WORDS.find(b=>b[0]===w.ko);
+    if(src && src[3] && !w.pron) w.pron = src[3];
+  });
+  if(merged.length){
+    data.words = data.words.concat(merged);
+    saveData();
+  }
+}
+function saveData(){ localStorage.setItem(KEY, JSON.stringify(data)); }
+
+// ===== 设备同步码（电脑 ↔ 手机）=====
+// 紧凑行格式：只传进度 + 自定义词，内置词库两端一致不传输
+// 行格式：TOPIKSYNC2|<ts>
+//         <ko>|<learned>|<right>|<wrong>|<status>|<curve逗号列表>
+//         自定义词: NEW|<ko>|<zh>|<pos>|<colloc~分隔>|<essayFreq>|<essay~分隔>
+const BUILTIN_KOS = new Set(BASE_WORDS.map(w=>w[0]));
+function compactForSync(){
+  const lines=[];
+  lines.push("TOPIKSYNC2|"+Date.now());
+  data.words.forEach(w=>{
+    const stages=Object.keys(w.curve||{}).join(",");
+    if(BUILTIN_KOS.has(w.ko)){
+      lines.push([w.ko,w.learned||"",w.right||0,w.wrong||0,w.status||"untested",stages].join("|"));
+    }else{
+      // 自定义词：带全量数据
+      const c=(w.colloc||[]).join("~");
+      const e=(w.essay||[]).join("~");
+      lines.push(["NEW",w.ko,w.zh||"",w.pos||"",w.pron||"",c,w.essayFreq?"1":"0",e,w.learned||"",w.right||0,w.wrong||0,w.status||"untested",stages].join("|"));
+    }
+  });
+  return lines.join("\n");
+}
+function encodeSync(payload){
+  // UTF-8 安全 base64
+  const utf8=unescape(encodeURIComponent(payload));
+  let bin="";
+  for(let i=0;i<utf8.length;i++) bin+=String.fromCharCode(utf8.charCodeAt(i)&0xff);
+  return btoa(bin);
+}
+function decodeSync(b64){
+  const bin=atob(b64);
+  let bytes="";
+  for(let i=0;i<bin.length;i++) bytes+=String.fromCharCode(bin.charCodeAt(i));
+  return decodeURIComponent(escape(bytes));
+}
+function genSyncCode(){
+  const payload=compactForSync();
+  const code=encodeSync(payload);
+  const box=document.getElementById("sync-code-out");
+  box.textContent="TOPIKSYNC2|"+code;
+  box.classList.remove("hidden");
+  const btn=document.getElementById("sync-copy-btn");
+  btn.classList.remove("hidden"); btn.textContent="📎 复制同步码";
+  box.scrollIntoView({behavior:"smooth"});
+}
+function copySyncCode(){
+  const el=document.getElementById("sync-code-out");
+  navigator.clipboard.writeText(el.textContent).then(()=>{
+    const btn=document.getElementById("sync-copy-btn");
+    btn.textContent="✅ 已复制，粘贴到另一设备导入"; setTimeout(()=>btn.textContent="📎 复制同步码",2000);
+  }).catch(()=>{
+    const range=document.createRange(); range.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+    document.execCommand("copy"); window.getSelection().removeAllRanges();
+  });
+}
+function importSyncCode(){
+  const raw=document.getElementById("sync-code-in").value.trim();
+  if(!raw){ alert("请粘贴对方设备生成的同步码！"); return; }
+  let code=raw;
+  if(code.startsWith("TOPIKSYNC2|")) code=code.slice("TOPIKSYNC2|".length);
+  else if(code.startsWith("TOPIKSYNC1|")) code=code.slice("TOPIKSYNC1|".length);
+  try{
+    const payload=decodeSync(code);
+    const lines=payload.split("\n").filter(l=>l.trim());
+    if(!lines.length) throw new Error("空数据");
+    let added=0,updated=0;
+    lines.forEach(line=>{
+      const parts=line.split("|");
+      if(parts[0]==="NEW"){
+        // 自定义词：[ko,zh,pos,pron,colloc,essayFreq,essay,learned,right,wrong,status,curve]
+        const ko=parts[1]; if(!ko) return;
+        let w=data.words.find(x=>x.ko===ko);
+        if(!w){
+          w={id:data.words.length,ko,zh:parts[2]||"",pos:parts[3]||"",pron:parts[4]||"",colloc:(parts[5]||"").split("~").filter(Boolean),essayFreq:parts[6]==="1",essay:(parts[7]||"").split("~").filter(Boolean),learned:parts[8]||null,curve:{},right:0,wrong:0,status:"untested"};
+          data.words.push(w); added++;
+        }
+        mergeProgress(w,parts[9],parts[10],parts[11],parts[12]);
+        updated++;
+      }else if(parts.length>=6){
+        const ko=parts[0]; if(!ko) return;
+        const w=data.words.find(x=>x.ko===ko);
+        if(!w){
+          // 远程有而本地无：作为自定义词补齐（含基础信息由远程带）
+          w={id:data.words.length,ko,zh:"",pos:"",colloc:[],essayFreq:false,essay:[],learned:parts[1]||null,curve:{},right:0,wrong:0,status:"untested"};
+          data.words.push(w); added++;
+        }
+        mergeProgress(w,parts[1],parts[2],parts[3],parts[4],parts[5]);
+        updated++;
+      }
+    });
+    saveData(); updateStats();
+    document.getElementById("sync-code-in").value="";
+    alert(`✅ 同步完成：新增 ${added} 词，合并更新 ${updated} 词进度！`);
+  }catch(err){
+    alert("⚠️ 同步码解析失败："+err.message);
+  }
+}
+function mergeProgress(w,learned,right,wrong,status,curveStr){
+  if(learned&&(!w.learned||learned<w.learned)) w.learned=learned;
+  if(!w.learned&&learned) w.learned=learned;
+  if(parseInt(right||0)>w.right) w.right=parseInt(right||0);
+  if(parseInt(wrong||0)>w.wrong) w.wrong=parseInt(wrong||0);
+  if(status==="failed"&&w.status!=="failed") w.status=status;
+  if(status==="mastered"&&w.status==="untested") w.status="mastered";
+  if(curveStr){
+    curveStr.split(",").filter(Boolean).forEach(st=>{ if(!w.curve[st]) w.curve[st]=Date.now(); });
+  }
+}
+
+// ===== 备份与恢复（防预览 URL 变化丢失数据）=====
+function exportBackup(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`topik-backup-${today()}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  alert("✅ 已下载完整备份文件，请妥善保存。下次打开页面若数据丢失，用「导入备份」恢复。");
+}
+function importBackup(){
+  const input=document.createElement("input");
+  input.type="file"; input.accept=".json";
+  input.onchange=e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        if(!d.words||!Array.isArray(d.words)){ alert("⚠️ 备份文件格式不正确！"); return; }
+        data=d; saveData(); updateStats();
+        alert(`✅ 已从备份恢复 ${data.words.length} 个词的数据！`);
+      }catch(err){ alert("⚠️ 备份文件解析失败："+err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function today(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function addDays(dateStr, n){ const d=new Date(dateStr+"T00:00:00"); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+
+// ================= 工具 =================
+function norm(s){ return String(s||"").replace(/\s+/g,"").toLowerCase(); }
+function editDist(a,b){
+  if(!a||!b) return 99;
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return dp[m][n];
+}
+function fuzzyMatch(user,target){
+  const u=norm(user),t=norm(target);
+  if(!u) return false;
+  if(t.includes(u)||u.includes(t)) return true;
+  const parts=t.split(/[，,、；;/]/).filter(s=>s.length>=2);
+  for(const p of parts) if(u.includes(p)||p.includes(u)) return true;
+  if(u.length>=3&&t.length>=3&&editDist(u,t)<=1) return true;
+  if(u.length>=5&&t.length>=5&&editDist(u,t)<=2) return true;
+  return false;
+}
+function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// 解析搭配条目：分离「完整韩文搭配」和「中文释义」
+// 支持格式："도움을 요청하다 请求帮助" | "도움을 요청하다（请求帮助）" | "도움을 요청하다"
+function parseColloc(entry){
+  entry=String(entry||"").trim();
+  if(!entry) return {ko:"",zh:""};
+  // 中文释义：中文连续片段
+  const zhMatch=entry.match(/[\u4e00-\u9fff][^（()）\s]*/g)||[];
+  const zhPart=zhMatch.join("").trim();
+  // 韩文搭配：去掉中文部分、括号及尾部空白
+  let koPart=zhPart?entry.replace(zhPart,""):entry;
+  koPart=koPart.replace(/[（(）)\s]+$/g,"").trim();
+  if(!koPart) koPart=entry.split(/\s/)[0];
+  // 清理可能残留的括号（如（请求帮助）去掉中文后可能剩（）
+  koPart=koPart.replace(/[（(）)]/g,"").trim();
+  if(!koPart) koPart=entry.split(/\s/)[0];
+  return {ko:koPart,zh:zhPart};
+}
+function copyText(id){
+  const el=document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent).then(()=>{
+    const b=document.getElementById("copy-log-btn"); if(b){b.textContent="✅ 已复制"; setTimeout(()=>b.textContent="📎 复制日志",1500);}
+  }).catch(()=>{
+    const range=document.createRange(); range.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+    document.execCommand("copy"); window.getSelection().removeAllRanges();
+  });
+}
+
+// ================= 导航 =================
+function showPanel(name){
+  document.querySelectorAll(".panel").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(el=>el.classList.remove("active"));
+  document.getElementById("panel-"+name).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(el=>{ if(el.textContent.includes(({lookup:"查词",test:"测试",review:"复习",sync:"日志",bank:"词库"})[name]||"")) el.classList.add("active"); });
+  if(name==="review") renderReview();
+  if(name==="sync") renderStats();
+  if(name==="bank") renderWordList();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function updateStats(){
+  let mastered=0,failed=0,untested=0,essay=0;
+  data.words.forEach(w=>{
+    if(w.essayFreq) essay++;
+    if(w.status==="mastered") mastered++;
+    else if(w.status==="failed") failed++;
+    else untested++;
+  });
+  document.getElementById("st-total").textContent=data.words.length;
+  document.getElementById("st-mastered").textContent=mastered;
+  document.getElementById("st-failed").textContent=failed;
+  document.getElementById("st-today").textContent=dueWords().length;
+}
+
+// ================= 查词 =================
+function genPrompt(){
+  const input=document.getElementById("lk-input").value.trim();
+  if(!input){ alert("请先输入韩文词！"); return; }
+  const words=input.split(/[,，\s]+/).filter(w=>w.trim()).map(w=>w.trim());
+  // 查重提示：标记已在词库中的词，避免用户以为要重新导入
+  const existing=words.filter(w=>data.words.find(x=>x.ko===w));
+  const newWords=words.filter(w=>!data.words.find(x=>x.ko===w));
+  const prompt=`我是 TOPIK 备考者，请按以下模板分析这些真题生词（自动写入词汇日志，进入复习队列）。
+${existing.length?`\n⚠️ 提示：其中 ${existing.join("、")} 已在词库中，不需要重新导入；请只为新词生成分析，或仅生成该词的深度补充信息。\n`:""}
+指定真题来源：TOPIK II 中高级
+标记等级：🟡模糊不确定
+
+词汇列表：
+${newWords.length?newWords.map((w,i)=>`${i+1}. ${w}`).join("\n"):"(无新词)"}
+
+要求对每个词按以下格式输出（标签：内容）：
+词条：
+汉字词源：
+含义：
+词性：
+等级：
+活用：
+实际发音：（音变后的真实读音，如 법칙→[법치기]；无音变则填"无"）
+例句：
+搭配：（用 | 分隔，至少5个）
+近义词：（用 | 分隔，含场景）
+反义词：
+同源词：
+听力场景：
+敬语：
+真题例句：（如可检索真题PDF则给出，否则跳过）
+写作词：（是/否——该词是否适合用于大作文53/54번）
+大作文句式：（如写作词=是，给出1-2个可替换槽位句式，格式：[句式]（中文翻译））
+
+请全部使用中文解释，韩文保留原词。`;
+  document.getElementById("lk-prompt-text").textContent=prompt;
+  document.getElementById("lk-prompt-box").classList.remove("hidden");
+  document.getElementById("lk-prompt-box").scrollIntoView({behavior:"smooth"});
+}
+
+function importWords(){
+  const text=document.getElementById("lk-import").value.trim();
+  if(!text){ alert("请粘贴 AI 分析结果！"); return; }
+  // 按词条切分
+  const blocks=text.split(/(?=词条：)/g).filter(b=>b.trim());
+  let imported=0;
+  const skipped=[];
+  blocks.forEach(block=>{
+    const g=(label)=>{ const m=block.match(new RegExp(label+"[:：]\\s*([^\\n\\r]+)","i")); return m?m[1].trim():""; };
+    const gMulti=(label)=>{ const m=block.match(new RegExp(label+"[:：]\\s*([\\s\\S]*?)(?=\\n\\s*(?:词条|汉字词源|含义|词性|等级|活用|例句|搭配|近义词|反义词|同源词|听力|敬语|真题|写作|大作文)[:：]|$)","i")); return m?m[1].trim():""; };
+    const ko=g("词条");
+    if(!ko) return;
+    // 查重：已在词库中（含内置词库与历史导入）→ 跳过并记录，不执行导入
+    const exists=data.words.find(x=>x.ko===ko);
+    if(exists){ skipped.push(ko); return; }
+    // 仅真正的新词才导入
+    const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],learned:today(),curve:{R1:Date.now()},right:0,wrong:0,status:"failed"};
+    // 实际发音：如 "법칙→[법치기]" 或 "[법치기]" 或 "无"
+    const pronRaw=g("实际发音");
+    if(pronRaw&&!pronRaw.includes("无")){
+      const pm=pronRaw.match(/\[[^\]]+\]/);
+      w.pron=pm?pm[0]:(pronRaw.includes("→")?pronRaw.split("→")[1].trim():pronRaw);
+    }
+    const colloc=gMulti("搭配");
+    if(colloc) w.colloc=colloc.split(/[|｜]/).map(s=>s.trim()).filter(s=>s).slice(0,6);
+    const essayWord=g("写作词");
+    const essayLine=gMulti("大作文句式");
+    if(essayWord&&essayWord.includes("是")&&essayLine) w.essayFreq=true;
+    if(essayLine) w.essay=[...new Set(essayLine.split(/\n/).map(s=>s.trim()).filter(s=>s))].slice(0,3);
+    data.words.push(w);
+    imported++;
+  });
+  saveData(); updateStats();
+  document.getElementById("lk-import").value="";
+  if(imported>0&&skipped.length>0){
+    alert(`✅ 已导入 ${imported} 个新词到词库，并进入复习队列！\nℹ️ ${skipped.length} 个词已在词库中，未重复导入：${skipped.join("、")}`);
+  } else if(imported>0){
+    alert(`✅ 已导入 ${imported} 个新词到词库，并进入复习队列！`);
+  } else if(skipped.length>0){
+    alert(`ℹ️ 这些词已在词库中（无需重复导入）：${skipped.join("、")}`);
+  } else alert("⚠️ 未解析到词条，请检查格式（需包含「词条：」标签）");
+}
+
+// ================= 测试 =================
+let currentMode="k2c", selRange="all", quizQueue=[], quizIndex=0, quizScore=0, quizResults=[];
+document.querySelectorAll("#range-opts .opt").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelectorAll("#range-opts .opt").forEach(o=>o.classList.remove("sel"));
+    el.classList.add("sel"); selRange=el.dataset.range;
+  });
+});
+document.querySelectorAll(".mode-btn").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelectorAll(".mode-btn").forEach(o=>o.classList.remove("active"));
+    el.classList.add("active"); currentMode=el.dataset.mode;
+    const quiz=document.getElementById("quiz-card");
+    if(!quiz.classList.contains("hidden")&&quizQueue.length) renderQuestion();
+  });
+});
+
+function getRangeWords(range){
+  // 科学排序：🔴 未通过(failed) > 🟡 未测过(untested) > 🔵 已掌握(mastered)
+  const sortByPriority=(arr)=>arr.sort((a,b)=>priorityOf(a)-priorityOf(b));
+  if(range==="untested") return sortByPriority(data.words.filter(w=>w.status==="untested"));
+  if(range==="wrong") return sortByPriority(data.words.filter(w=>w.status==="failed"));
+  if(range==="mastered") return sortByPriority(data.words.filter(w=>w.status==="mastered"));
+  if(range==="due") return sortByPriority(dueWords());
+  if(range==="essay") return sortByPriority(data.words.filter(w=>w.essayFreq));
+  // 搭配检测模式：只出有搭配数据的词（快轨推进用）
+  if(currentMode==="colloc") return sortByPriority(data.words.filter(w=>w.colloc&&w.colloc.length));
+  return sortByPriority(data.words.slice());
+}
+// 优先级：🔴 failed(0) > 🟡 untested(1) > 🔵 mastered(2)
+function priorityOf(w){
+  if(w.status==="failed") return 0;
+  if(w.status==="untested") return 1;
+  return 2;
+}
+function dueWords(){
+  const t=today();
+  return data.words.filter(w=>{
+    if(!w.learned) return false;
+    // 未完成所有轮次
+    const done=CURVE_STAGES.filter(s=>w.curve[s]);
+    if(done.length>=CURVE_STAGES.length) return false;
+    // 找到下一个未完成轮次
+    for(let i=0;i<CURVE_STAGES.length;i++){
+      const stage=CURVE_STAGES[i];
+      if(!w.curve[stage]){
+        const due=addDays(w.learned,CURVE_OFFSETS[i]);
+        return due<=t;
+      }
+    }
+    return false;
+  });
+}
+
+function startQuiz(){
+  const n=Math.min(parseInt(document.getElementById("batch-num").value)||20,200);
+  const pool=getRangeWords(selRange);
+  if(!pool.length){ alert("该范围没有词！"); return; }
+  quizQueue=shuffle(pool).slice(0,n);
+  quizIndex=0; quizScore=0; quizResults=[];
+  document.getElementById("quiz-card").classList.remove("hidden");
+  document.getElementById("result-card").classList.add("hidden");
+  document.getElementById("quiz-card").scrollIntoView({behavior:"smooth"});
+  renderQuestion();
+}
+function startDueQuiz(){
+  // 双轨制：快轨（未测新词）优先，然后深轨（到期词按优先级）
+  const fastTrack=data.words.filter(w=>w.status==="untested");
+  const due=dueWords().sort((a,b)=>priorityOf(a)-priorityOf(b));
+  if(!fastTrack.length&&!due.length){ alert("今日没有到期词，也没有未测新词 🎉"); return; }
+  // 组装队列：先未测新词（快轨），再到期的深轨词；各取一半
+  let queue=[];
+  if(fastTrack.length){
+    queue=queue.concat(fastTrack.slice(0,15));
+  }
+  if(due.length){
+    queue=queue.concat(due.slice(0,15));
+  }
+  selRange="due";
+  document.querySelectorAll("#range-opts .opt").forEach(o=>o.classList.remove("sel"));
+  document.querySelectorAll("#range-opts .opt").forEach(o=>{ if(o.dataset.range==="due") o.classList.add("sel"); });
+  quizQueue=shuffle(queue).slice(0,30);
+  quizIndex=0; quizScore=0; quizResults=[];
+  document.getElementById("quiz-card").classList.remove("hidden");
+  document.getElementById("result-card").classList.add("hidden");
+  showPanel("test");
+  document.getElementById("quiz-card").scrollIntoView({behavior:"smooth"});
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const w=quizQueue[quizIndex];
+  const total=quizQueue.length;
+  document.getElementById("q-progress").textContent=`${quizIndex+1} / ${total}`;
+  document.getElementById("q-score").textContent=`✓ ${quizScore}`;
+  const fb=document.getElementById("q-feedback");
+  fb.className="feedback"; fb.innerHTML="";
+  const input=document.getElementById("q-input");
+  const submit=document.getElementById("q-submit");
+  const choices=document.getElementById("q-choices");
+  document.getElementById("q-word").classList.remove("rev");
+
+  if(currentMode==="k2c"){
+    document.getElementById("q-word").textContent=w.ko;
+    document.getElementById("q-hint").textContent=`词性：${w.pos||"—"} · 说出中文含义`;
+    input.value=""; input.placeholder="输入中文含义...";
+    input.classList.remove("hidden"); submit.classList.remove("hidden");
+    choices.classList.add("hidden"); choices.innerHTML="";
+    input.focus();
+  } else if(currentMode==="c2k"){
+    document.getElementById("q-word").textContent=w.zh;
+    document.getElementById("q-word").classList.add("rev");
+    document.getElementById("q-hint").textContent=`词性：${w.pos||"—"} · 写出韩文`;
+    input.value=""; input.placeholder="输入韩文拼写...";
+    input.classList.remove("hidden"); submit.classList.remove("hidden");
+    choices.classList.add("hidden"); choices.innerHTML="";
+    input.focus();
+  } else if(currentMode==="colloc"){
+    // 搭配检测（纯输入型，无干扰项，科学设计）：
+    // 玩法1：韩→中回忆——显示搭配，用户写中文含义（所有词，练听力阅读识别）
+    // 玩法2：中→韩听写——显示中文，用户写韩文搭配（仅写作词，练写作输出）
+    input.classList.remove("hidden"); submit.classList.remove("hidden");
+    choices.classList.add("hidden"); choices.innerHTML="";
+    // 该词必须有搭配数据（题目生成时已过滤）
+    const entry=w.colloc[Math.floor(Math.random()*w.colloc.length)];
+    // 解析搭配条目（完整韩文搭配 + 中文释义），支持多种格式：
+    //  "도움을 요청하다 请求帮助" | "도움을 요청하다（请求帮助）" | "도움을 요청하다"
+    const parsed=parseColloc(entry);
+    const koPart=parsed.ko;
+    // 中文释义为空时（纯韩文搭配数据），fallback 到词的基本释义
+    const zhPart=parsed.zh||w.zh.split(/[，,]/)[0]||w.zh;
+    // 玩法分层：写作词→两种玩法随机（练输出）；普通词→只练识别（韩→中）
+    // 若搭配无中文释义且词本身也无释义，则强制用韩→中玩法
+    const play = (!zhPart) ? "k2c" : (w.essayFreq ? (Math.random()<0.5?"k2c":"c2k") : "k2c");
+    if(play==="k2c"){
+      document.getElementById("q-word").textContent=koPart;
+      document.getElementById("q-word").classList.remove("rev");
+      document.getElementById("q-hint").textContent=`🔗 搭配含义 · 词：${w.ko}(${w.zh.split(/[，,]/)[0]}) · 写出该搭配的意思`;
+      input.placeholder="输入中文含义..."; input.value="";
+      window._collocAnswer=zhPart; window._collocAnswerKo=koPart;
+    } else {
+      document.getElementById("q-word").textContent=zhPart;
+      document.getElementById("q-word").classList.add("rev");
+      document.getElementById("q-hint").textContent=`🔗 搭配听写 · 写作词：${w.ko}(${w.zh.split(/[，,]/)[0]}) · 写出韩文搭配`;
+      input.placeholder="输入韩文搭配..."; input.value="";
+      window._collocAnswer=koPart; window._collocAnswerKo=koPart;
+    }
+    input.focus();
+  } else if(currentMode==="listen"){
+    // 🔊 听音辨字：显示实际发音（音变后），用户写出原词拼写
+    // 对应"眼熟但耳生"陷阱：听到 [법치기]，映射回 법칙
+    input.classList.remove("hidden"); submit.classList.remove("hidden");
+    choices.classList.add("hidden"); choices.innerHTML="";
+    const pron=w.pron||w.ko; // 无音变的词显示其本身（同样可练听音拼写）
+    document.getElementById("q-word").textContent=pron;
+    document.getElementById("q-word").classList.remove("rev");
+    document.getElementById("q-hint").textContent=`🔊 听音辨字 · 听到 [${pron.replace(/[\[\]]/g,"")}]，写出对应的韩文拼写（${w.zh.split(/[，,]/)[0]}）`;
+    input.placeholder="输入拼写..."; input.value="";
+    window._listenAnswer=w.ko;
+    input.focus();
+  } else {
+    document.getElementById("q-word").textContent=w.ko;
+    document.getElementById("q-hint").textContent=`词性：${w.pos||"—"} · 选出正确含义`;
+    input.classList.add("hidden"); submit.classList.add("hidden");
+    const correct=w.zh;
+    const wrongs=shuffle(data.words.filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.zh);
+    const opts=shuffle([correct,...wrongs]);
+    choices.classList.remove("hidden"); choices.innerHTML="";
+    opts.forEach((o,i)=>{
+      const d=document.createElement("div");
+      d.className="choice";
+      d.innerHTML=`<span class="opt-letter">${String.fromCharCode(65+i)}.</span>${o}`;
+      d.addEventListener("click",()=>{
+        choices.querySelectorAll(".choice").forEach(c=>c.classList.add("disabled"));
+        const ok=(o===correct);
+        d.classList.add(ok?"correct":"wrong");
+        if(!ok){ const ci=opts.indexOf(correct); choices.children[ci].classList.add("correct"); }
+        finishWord(w,ok,"recog"); // 四选一：再认型，只推进快轨
+      });
+      choices.appendChild(d);
+    });
+  }
+}
+
+function submitAnswer(){
+  const w=quizQueue[quizIndex];
+  const input=document.getElementById("q-input");
+  const user=input.value.trim();
+  if(!user) return;
+  if(currentMode==="listen"){
+    // 🔊 听音辨字：回忆型判分（影响掌握状态）
+    const ok=fuzzyMatch(user,window._listenAnswer);
+    showListenFeedback(w,user,ok);
+    return;
+  }
+  let ok, target;
+  if(currentMode==="colloc"){
+    // 搭配检测：回忆型判分，答案已存于 _collocAnswer
+    ok=fuzzyMatch(user,window._collocAnswer);
+    target=window._collocAnswerKo+"（"+window._collocAnswer+"）";
+    showFeedbackColloc(w,user,ok);
+    return;
+  }
+  ok = currentMode==="k2c" ? fuzzyMatch(user,w.zh) : fuzzyMatch(user,w.ko);
+  showFeedback(w,user,ok);
+}
+// 🔊 听音辨字反馈
+function showListenFeedback(w,user,ok){
+  window._lastFeedbackWord=w;
+  const fb=document.getElementById("q-feedback");
+  let html=`<div class="ans">${ok?"✅ 听音辨字成功！":"❌ 拼写错误"}</div>`;
+  html+=`<div style="margin-top:4px;">正确拼写：<b>${w.ko}</b>（${w.zh.split(/[，,]/)[0]}）</div>`;
+  if(!ok) html+=`<div>你的答案：${user||"（未作答）"}</div>`;
+  if(w.pron){
+    html+=`<div class="extra" style="margin-top:6px;">🔊 实际发音：<b style="color:var(--accent);">${w.pron}</b> —— 记住：听感与拼写不同，这是听力的关键！</div>`;
+  }
+  html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],${ok?true:false},'recall')">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
+  fb.className=`feedback ${ok?"correct":"wrong"}`;
+  fb.innerHTML=html;
+}
+// 搭配检测反馈（回忆型：影响掌握状态）
+function showFeedbackColloc(w,user,ok){
+  window._lastFeedbackWord=w;
+  const fb=document.getElementById("q-feedback");
+  const answer=window._collocAnswer;
+  let html=`<div class="ans">${ok?"✅ 搭配正确！":"❌ 搭配错误"}</div>`;
+  html+=`<div style="margin-top:4px;">正确搭配：<b>${window._collocAnswerKo}</b>（${answer}）</div>`;
+  if(!ok) html+=`<div>你的答案：${user||"（未作答）"}</div>`;
+  // 展示该词全部高频搭配（正强化，巩固语感）
+  if(w.colloc&&w.colloc.length){
+    html+=`<div class="extra" style="margin-top:8px;"><b>📎 该词高频搭配（记熟这些）：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
+  }
+  // 写作高频词展示大作文句式
+  if(w.essayFreq&&w.essay.length){
+    html+=`<div class="extra" style="margin-top:10px;"><b>✍️ 大作文表达：</b></div>`;
+    html+=w.essay.slice(0,2).map(e=>{
+      const hasT=e.includes("（");
+      const koPart=hasT?e.split("（")[0]:e;
+      const zhPart=hasT?`（${e.split("（")[1]}`:"";
+      return `<div class="fb-essay"><div class="ko-line">${koPart}</div><div style="font-size:.8rem;">${zhPart}</div></div>`;
+    }).join("");
+  }
+  html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],${ok?true:false},'recall')">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
+  fb.className=`feedback ${ok?"correct":"wrong"}`;
+  fb.innerHTML=html;
+}
+
+function showFeedback(w,user,ok){
+  window._lastFeedbackWord=w;
+  const fb=document.getElementById("q-feedback");
+  const target = currentMode==="k2c" ? w.zh : w.ko;
+  let html=`<div class="ans">${ok?"✅ 正确！":"❌ 错误"}</div>`;
+  html+=`<div style="margin-top:4px;">正确：<b>${target}</b>${currentMode==="c2k"&&ok?"":""}${currentMode==="c2k"&&!ok?`（${w.zh}）`:""}</div>`;
+  // 实际发音展示（音变提示，听力/口语用）
+  if(w.pron){
+    html+=`<div class="extra" style="margin-top:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);font-size:1.02rem;">${w.pron}</span> <span style="font-size:.76rem;color:var(--text-2);">（音变后真实读音，听力/口语重点）</span></div>`;
+  }
+  if(!ok) html+=`<div>你的答案：${user||"（未作答）"}</div>`;
+
+  // 常见搭配
+  if(w.colloc&&w.colloc.length){
+    html+=`<div class="extra"><b>📎 常见搭配：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
+  }
+  // 大作文例句（写作高频词）
+  if(w.essayFreq&&w.essay.length){
+    html+=`<div class="extra" style="margin-top:10px;"><b>✍️ 大作文表达（写作高频词）：</b></div>`;
+    html+=w.essay.slice(0,2).map(e=>{
+      const hasT=e.includes("（");
+      const koPart=hasT?e.split("（")[0]:e;
+      const zhPart=hasT?`（${e.split("（")[1]}`:"（中文翻译暂未内置，可在 AI 对话中补充）";
+      return `<div class="fb-essay"><div class="ko-line">${koPart}</div><div style="font-size:.8rem;">${zhPart}</div></div>`;
+    }).join("");
+    // 仿写练习入口：直接在 essay 反馈下展开
+    const skel=w.essay[0]?w.essay[0].split("（")[0].trim():"";
+    html+=`<div class="extra" style="margin-top:14px;"><b>✍️ 仿写练习（用 [ ] 替换主题词造句）：</b></div>`;
+    html+=`<div class="fb-essay" style="background:#fff;"><div class="ko-line">${skel}</div></div>`;
+    html+=`<textarea id="imitate-input" placeholder="替换 [] 中的主题词，仿写一句韩文句子..." style="min-height:54px;margin-top:8px;font-size:.88rem;"></textarea>`;
+    html+=`<button class="btn purple" style="margin-top:8px;font-size:.82rem;padding:8px 16px;" onclick="genImitatePrompt()">📎 生成 AI 评估指令</button>`;
+    html+=`<div class="prompt-box hidden" id="imitate-prompt-box" style="margin-top:10px;"></div>`;
+    html+=`<button class="btn ghost hidden" id="imitate-copy-btn" style="margin-top:6px;font-size:.82rem;padding:8px 16px;" onclick="copyImitatePrompt()">📎 复制评估指令</button>`;
+  }
+  // 下一步
+  if(ok){
+    html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],true,'recall')">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
+  } else {
+    html+=`<div class="self-correction"><span style="font-size:.8rem;color:var(--text-2);margin-right:4px;">答对了但被误判？</span>
+      <button class="self-btn yes" onclick="finishWord(quizQueue[quizIndex],true,'recall')">✓ 我答对了</button>
+      <button class="self-btn no" onclick="finishWord(quizQueue[quizIndex],false,'recall')">✗ 确实错了</button></div>`;
+  }
+  fb.className=`feedback ${ok?"correct":"wrong"}`;
+  fb.innerHTML=html;
+}
+
+// 写作高频词仿写评估：在 essay 反馈下方嵌入
+function genImitatePrompt(){
+  const w=window._lastFeedbackWord;
+  if(!w) return;
+  const text=document.getElementById("imitate-input").value.trim();
+  if(!text){ alert("请先输入仿写句子！"); return; }
+  const skel=w.essay&&w.essay[0]?w.essay[0].split("（")[0].trim():"";
+  const example=w.essay&&w.essay[0]?w.essay[0]:"";
+  const prompt=`我是 TOPIK 备考者，在做大作文仿写练习，请帮我评估以下仿写句子。
+
+【目标词】${w.ko}（${w.zh}）
+【句式骨架】${skel}
+【参考例句】${example}
+
+【我的仿写】${text}
+
+请：
+1. 判断句子是否成立（语法、语义、搭配是否正确自然），给出评分（满分10分）和理由
+2. 如有错误，逐条指出并给出修正后的句子
+3. 拓展思维：这个句式还可以替换哪些主题词（给出 3-5 个韩文词 + 中文含义 + 适用大作文主题）
+4. 如果句子成立，请给出 1 个更高级的升级版表达`;
+  const box=document.getElementById("imitate-prompt-box");
+  box.textContent=prompt;
+  box.classList.remove("hidden");
+  document.getElementById("imitate-copy-btn").classList.remove("hidden");
+}
+function copyImitatePrompt(){
+  const el=document.getElementById("imitate-prompt-box");
+  navigator.clipboard.writeText(el.textContent).then(()=>{
+    const btn=document.getElementById("imitate-copy-btn");
+    btn.textContent="✅ 已复制，发给 AI 评估"; setTimeout(()=>btn.textContent="📎 复制评估指令",1800);
+  }).catch(()=>{
+    const range=document.createRange(); range.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+    document.execCommand("copy"); window.getSelection().removeAllRanges();
+  });
+}
+
+function finishWord(w,ok,mode){
+  // mode: 'recall'=回忆型（韩→中/中→韩，决定掌握状态）| 'recog'=再认型（四选一/搭配检测，只推进快轨）
+  const fb=document.getElementById("q-feedback");
+  fb.className="feedback"; fb.innerHTML="";
+  // 更新记忆状态
+  if(ok){
+    w.right++;
+    // 推进到下一轮次
+    if(!w.learned) { w.learned=today(); }
+    let stageIdx=CURVE_STAGES.findIndex(s=>!w.curve[s]);
+    if(stageIdx===-1) stageIdx=CURVE_STAGES.length-1;
+    w.curve[CURVE_STAGES[stageIdx]]=Date.now();
+    if(mode==="recall"){
+      // 回忆型才可判定"掌握"：答对≥2次且多于答错
+      if(w.right>=2 && w.right>w.wrong) w.status="mastered";
+      else if(w.wrong>0) w.status="failed";
+      else if(w.status==="untested") w.status="failed"; // 学习过但还没到掌握线，先标记待巩固
+    } else {
+      // 再认型（四选一/搭配）答对：只推进快轨，不提升为掌握
+      // 若之前从未深轨确认过，保持"待深轨验证"
+      if(w.status==="untested") w.status="untested";
+    }
+  } else {
+    w.wrong++;
+    // 重置曲线到 R1
+    w.curve={};
+    w.curve.R1=Date.now();
+    if(!w.learned) w.learned=today();
+    w.status="failed"; // 答错（无论哪种模式）都视为未掌握
+  }
+  saveData(); updateStats();
+  quizResults.push({w,ok});
+  if(ok) quizScore++;
+  if(quizIndex<quizQueue.length-1){ quizIndex++; renderQuestion(); }
+  else showResult();
+}
+
+function showResult(){
+  document.getElementById("quiz-card").classList.add("hidden");
+  document.getElementById("result-card").classList.remove("hidden");
+  document.getElementById("result-card").scrollIntoView({behavior:"smooth"});
+  const pct=Math.round(quizScore/quizQueue.length*100);
+  document.getElementById("r-score").textContent=pct+"%";
+  const detail=document.getElementById("r-detail");
+  detail.innerHTML="";
+  quizResults.forEach(r=>{
+    const row=document.createElement("div");
+    row.className=`res-row ${r.ok?"ok":"no"}`;
+    row.innerHTML=`<span class="ko">${r.w.ko}</span><span>${r.w.zh}</span><span>${r.ok?"✓":"✗"}</span>`;
+    detail.appendChild(row);
+  });
+  const wrong=quizResults.filter(r=>!r.ok);
+  if(wrong.length){
+    const wl=document.createElement("div");
+    wl.style.marginTop="10px";
+    wl.innerHTML=`<div style="font-weight:700;color:var(--red);margin:8px 0 6px;">📌 错词（已入错词本并重置记忆曲线）：</div>`+
+      wrong.map(r=>`<span class="chip chip-red">${r.w.ko} ${r.w.zh}</span>`).join("");
+    detail.appendChild(wl);
+  }
+}
+
+// ================= 复习 =================
+function renderReview(){
+  const box=document.getElementById("review-list");
+  const t=today();
+  // 快轨：未测过的新词（R1⏳）
+  const fastTrack=data.words.filter(w=>w.status==="untested");
+  // 深轨：到期待复习的词，按 🔴>🟡>🔵
+  const due=dueWords().sort((a,b)=>priorityOf(a)-priorityOf(b));
+  const red=due.filter(w=>w.status==="failed");
+  const blue=due.filter(w=>w.status==="mastered");
+  const untestedCount=fastTrack.length;
+
+  if(!due.length&&!untestedCount){
+    box.innerHTML=`<div class="empty-hint">🎉 今天没有到期的复习词！<br>可以学新词，或从「测试」面板选错词本巩固。</div>`;
+    return;
+  }
+
+  let html=`<div style="font-size:.85rem;color:var(--text-2);margin-bottom:8px;">📋 今日复习任务 | ${t}</div>`;
+  html+=`<div style="background:var(--accent-light);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.84rem;">🚀 快轨：还有 <b style="color:var(--accent);">${untestedCount}</b> 个新词未测（R1⏳）→ 建议优先推进快轨，再做深轨巩固</div>`;
+
+  if(red.length){
+    html+=`<div style="font-size:.85rem;color:var(--red);font-weight:700;margin:8px 0 4px;">🔴 优先（未通过，需巩固）：${red.length} 词</div>`;
+    red.slice(0,15).forEach(w=>{
+      const stage=CURVE_STAGES.find(s=>!w.curve[s])||"完成";
+      html+=`<div class="review-item"><div><span class="ko">${w.ko}</span> <span class="meta">${w.zh.split(/[，,]/)[0]}${w.essayFreq?" · ✍️写作":""}</span></div><span class="stage">${stage}</span></div>`;
+    });
+    if(red.length>15) html+=`<div style="text-align:center;color:var(--text-2);font-size:.8rem;">…共 ${red.length} 词</div>`;
+  }
+  if(blue.length){
+    html+=`<div style="font-size:.85rem;color:var(--text-2);font-weight:700;margin:8px 0 4px;">🔵 轻度（已掌握，保持复习）：${blue.length} 词</div>`;
+    blue.slice(0,10).forEach(w=>{
+      const stage=CURVE_STAGES.find(s=>!w.curve[s])||"完成";
+      html+=`<div class="review-item"><div><span class="ko">${w.ko}</span> <span class="meta">${w.zh.split(/[，,]/)[0]}</span></div><span class="stage">${stage}</span></div>`;
+    });
+    if(blue.length>10) html+=`<div style="text-align:center;color:var(--text-2);font-size:.8rem;">…共 ${blue.length} 词</div>`;
+  }
+  box.innerHTML=html;
+}
+
+// ================= 日志同步 =================
+function curveStatusStr(w){
+  const stages=CURVE_STAGES.map(s=>w.curve[s]?s+"✅":s+"□");
+  return stages.join(" ");
+}
+function exportLog(){
+  const lines=[];
+  lines.push("# TOPIK 词汇学习记录（网页版导出）");
+  lines.push("");
+  lines.push("> 由 topik-vocab-tester 网页导出 · "+today());
+  lines.push("> 状态：✅ 已通过 | ⏳ 待复习 | □ 未到期 | 🔄 未通过已重置");
+  lines.push("");
+  // 按学习日期分组
+  const groups={};
+  data.words.forEach(w=>{
+    if(!w.learned) return;
+    const key=w.learned;
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(w);
+  });
+  Object.keys(groups).sort().forEach(date=>{
+    lines.push(`## ${date} | 网页查词/测试 | ${groups[date].length}词`);
+    groups[date].forEach(w=>{
+      const level=w.status==="mastered"?"🟢":(w.wrong>0?"🔴":"🟡");
+      const pronInfo=w.pron?` | 发音:${w.pron}`:"";
+      lines.push(`${w.ko} | ${level} | ${curveStatusStr(w)}${pronInfo}`);
+    });
+    lines.push("");
+  });
+  const text=lines.join("\n");
+  const box=document.getElementById("log-export");
+  box.textContent=text;
+  box.classList.remove("hidden");
+  document.getElementById("copy-log-btn").classList.remove("hidden");
+}
+function importLog(){
+  const text=document.getElementById("log-import").value.trim();
+  if(!text){ alert("请粘贴日志内容！"); return; }
+  let count=0;
+  // 解析 ## 日期 | 来源 | N词 分组
+  const blocks=text.split(/^##\s+/m).filter(b=>b.trim());
+  blocks.forEach(block=>{
+    const lines=block.split(/\n/).map(l=>l.trim()).filter(l=>l);
+    const header=lines.shift()||"";
+    const dm=header.match(/(\d{4}-\d{2}-\d{2})/);
+    const date=dm?dm[1]:null;
+    if(!date) return;
+    lines.forEach(line=>{
+      const parts=line.split("|").map(s=>s.trim());
+      if(parts.length<2) return;
+      const ko=parts[0];
+      let w=data.words.find(x=>x.ko===ko);
+      if(!w){
+        w={id:data.words.length,ko,zh:"",pos:"",colloc:[],essayFreq:false,essay:[],learned:null,curve:{},right:0,wrong:0,status:"untested"};
+        data.words.push(w);
+      }
+      w.learned=date;
+      // 解析状态：R1✅ R2□ D1⏳ ...
+      const statusStr=parts.slice(2).join("|")+" "+parts[1];
+      const stageRe=/([A-Z]\d+)([✅⏳□🔄])/g;
+      let m;
+      w.curve={};
+      while((m=stageRe.exec(statusStr))){
+        const s=m[1], mark=m[2];
+        if(mark==="✅"||mark==="⏳"||mark==="🔄") w.curve[s]=Date.now();
+      }
+      if(parts[1]&&parts[1].includes("🔴")) { w.wrong=Math.max(w.wrong,1); w.status="failed"; }
+      else if(Object.keys(w.curve).length>=5) w.status="mastered";
+      else w.status="failed";
+      count++;
+    });
+  });
+  saveData(); updateStats();
+  document.getElementById("log-import").value="";
+  alert(`✅ 已从日志导入 ${count} 个词的状态！`);
+}
+function renderStats(){
+  const mastered=data.words.filter(w=>w.status==="mastered").length;
+  const failed=data.words.filter(w=>w.status==="failed").length;
+  const untested=data.words.filter(w=>w.status==="untested").length;
+  const essay=data.words.filter(w=>w.essayFreq).length;
+  document.getElementById("stat-detail").innerHTML=`
+    <table style="width:100%;border-collapse:collapse;font-size:.88rem;margin-top:8px;">
+      <tr><th style="text-align:left;padding:8px;border:1px solid var(--border);background:var(--accent-light);">指标</th><th style="padding:8px;border:1px solid var(--border);background:var(--accent-light);">数值</th></tr>
+      <tr><td style="padding:8px;border:1px solid var(--border);">总词库</td><td style="padding:8px;border:1px solid var(--border);"><b>${data.words.length}</b></td></tr>
+      <tr><td style="padding:8px;border:1px solid var(--border);">已掌握（答对≥2次）</td><td style="padding:8px;border:1px solid var(--border);"><b style="color:var(--green);">${mastered}</b></td></tr>
+      <tr><td style="padding:8px;border:1px solid var(--border);">待巩固（答错过）</td><td style="padding:8px;border:1px solid var(--border);"><b style="color:var(--red);">${failed}</b></td></tr>
+      <tr><td style="padding:8px;border:1px solid var(--border);">未测过</td><td style="padding:8px;border:1px solid var(--border);"><b>${untested}</b></td></tr>
+      <tr><td style="padding:8px;border:1px solid var(--border);">写作高频词（带大作文例句）</td><td style="padding:8px;border:1px solid var(--border);"><b style="color:var(--purple);">${essay}</b></td></tr>
+    </table>`;
+}
+function resetProgress(){
+  if(confirm("确定清空全部测试进度（保留词库）吗？此操作不可撤销。")){
+    data.words.forEach(w=>{ w.learned=null; w.curve={}; w.right=0; w.wrong=0; w.status="untested"; });
+    saveData(); updateStats();
+    if(!document.getElementById("panel-sync").classList.contains("hidden")) renderStats();
+    if(!document.getElementById("panel-bank").classList.contains("hidden")) renderWordList();
+    alert("✅ 进度已清空，词库保留");
+  }
+}
+
+// ================= 词库 =================
+let selFilter="all";
+document.querySelectorAll("#bank-filter .opt").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelectorAll("#bank-filter .opt").forEach(o=>o.classList.remove("sel"));
+    el.classList.add("sel"); selFilter=el.dataset.f; renderWordList();
+  });
+});
+function renderWordList(){
+  let list=data.words.slice();
+  if(selFilter==="wrong") list=list.filter(w=>w.status==="failed");
+  if(selFilter==="mastered") list=list.filter(w=>w.status==="mastered");
+  if(selFilter==="untested") list=list.filter(w=>w.status==="untested");
+  if(selFilter==="essay") list=list.filter(w=>w.essayFreq);
+  const box=document.getElementById("word-list");
+  box.innerHTML=list.map(w=>{
+    let badge;
+    if(w.status==="mastered") badge=`<span class="st-ok">✓掌握</span>`;
+    else if(w.status==="failed") badge=`<span class="st-no">✗巩固</span>`;
+    else badge=`<span class="st-wait">未测</span>`;
+    const essayMark=w.essayFreq?'<span style="color:var(--purple);font-size:.7rem;">✍️</span>':'';
+    const pronMark=w.pron?`<span style="color:var(--accent);font-size:.68rem;font-weight:700;" title="实际发音：${w.pron}">🔊</span>`:'';
+    return `<div class="wl-item"><span class="ko">${w.ko}</span>${pronMark}${essayMark}<span class="zh">${w.zh.split(/[，,]/)[0]}</span>${badge}</div>`;
+  }).join("");
+  if(!list.length) box.innerHTML=`<div class="empty-hint">该筛选下没有词</div>`;
+}
+
+// ================= 初始化 =================
+document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
+// 注册 Service Worker（PWA 离线可用）
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{ /* 预览环境可能不支持，静默忽略 */ });
+  });
+}
+// 存储状态提示：仅当 localStorage 不可用或从未保存过时展示
+(function(){
+  const warn=document.getElementById("storage-warn");
+  if(!warn) return;
+  if(!storageOK()){
+    warn.innerHTML=`<p style="font-size:.84rem;"><b>⚠️ 当前环境不允许保存数据</b>（浏览器禁用了本地存储）。测试进度<b>不会</b>被记住，请每次结束后用「💾 导出备份」保存，或用「📂 导入备份」恢复。</p>`;
+  } else {
+    const saved=localStorage.getItem(KEY);
+    if(!saved) return; // 首次使用，不打扰
+    // 已保存过：正常提示
+    warn.innerHTML=`<p style="font-size:.84rem;"><b>✅ 本地已保存 ${data.words.filter(w=>w.status!=="untested").length} 个词的测试进度。</b>部署版网址固定，数据会稳定保存。手机上建议「添加到主屏幕」安装为应用，离线也能用。可随时用「💾 导出备份」下载存档以防万一。</p>`;
+    warn.style.background="var(--green-light)";
+    warn.style.borderColor="#b7e4d0";
+  }
+})();
+updateStats();
+</script>
+</body>
+</html>
