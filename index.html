@@ -734,6 +734,23 @@ function fuzzyMatch(user,target){
   return false;
 }
 function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// 解析搭配条目：分离「完整韩文搭配」和「中文释义」
+// 支持格式："도움을 요청하다 请求帮助" | "도움을 요청하다（请求帮助）" | "도움을 요청하다"
+function parseColloc(entry){
+  entry=String(entry||"").trim();
+  if(!entry) return {ko:"",zh:""};
+  // 中文释义：中文连续片段
+  const zhMatch=entry.match(/[\u4e00-\u9fff][^（()）\s]*/g)||[];
+  const zhPart=zhMatch.join("").trim();
+  // 韩文搭配：去掉中文部分、括号及尾部空白
+  let koPart=zhPart?entry.replace(zhPart,""):entry;
+  koPart=koPart.replace(/[（(）)\s]+$/g,"").trim();
+  if(!koPart) koPart=entry.split(/\s/)[0];
+  // 清理可能残留的括号（如（请求帮助）去掉中文后可能剩（）
+  koPart=koPart.replace(/[（(）)]/g,"").trim();
+  if(!koPart) koPart=entry.split(/\s/)[0];
+  return {ko:koPart,zh:zhPart};
+}
 function copyText(id){
   const el=document.getElementById(id);
   navigator.clipboard.writeText(el.textContent).then(()=>{
@@ -971,12 +988,15 @@ function renderQuestion(){
     choices.classList.add("hidden"); choices.innerHTML="";
     // 该词必须有搭配数据（题目生成时已过滤）
     const entry=w.colloc[Math.floor(Math.random()*w.colloc.length)];
-    // 解析搭配条目："도움을 요청하다 请求帮助" 或 "도움을 요청하다（请求帮助）"
-    const koPart=entry.split(/\s|（/)[0];
-    const zhMatch=entry.match(/(?:[\u4e00-\u9fff][^\s（]*)/);
-    const zhPart=zhMatch?zhMatch[0]:w.zh.split(/[，,]/)[0];
+    // 解析搭配条目（完整韩文搭配 + 中文释义），支持多种格式：
+    //  "도움을 요청하다 请求帮助" | "도움을 요청하다（请求帮助）" | "도움을 요청하다"
+    const parsed=parseColloc(entry);
+    const koPart=parsed.ko;
+    // 中文释义为空时（纯韩文搭配数据），fallback 到词的基本释义
+    const zhPart=parsed.zh||w.zh.split(/[，,]/)[0]||w.zh;
     // 玩法分层：写作词→两种玩法随机（练输出）；普通词→只练识别（韩→中）
-    const play = w.essayFreq ? (Math.random()<0.5?"k2c":"c2k") : "k2c";
+    // 若搭配无中文释义且词本身也无释义，则强制用韩→中玩法
+    const play = (!zhPart) ? "k2c" : (w.essayFreq ? (Math.random()<0.5?"k2c":"c2k") : "k2c");
     if(play==="k2c"){
       document.getElementById("q-word").textContent=koPart;
       document.getElementById("q-word").classList.remove("rev");
