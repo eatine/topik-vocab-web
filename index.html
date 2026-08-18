@@ -189,6 +189,7 @@
       <button class="mode-btn active" data-mode="k2c">👀 韩→中</button>
       <button class="mode-btn" data-mode="c2k">✍️ 中→韩</button>
       <button class="mode-btn" data-mode="choice">🧩 四选一</button>
+      <button class="mode-btn" data-mode="colloc">🔗 搭配检测</button>
     </div>
     <div class="opt-grid" id="range-opts">
       <div class="opt sel" data-range="all">全部词汇</div>
@@ -870,6 +871,8 @@ function getRangeWords(range){
   if(range==="mastered") return sortByPriority(data.words.filter(w=>w.status==="mastered"));
   if(range==="due") return sortByPriority(dueWords());
   if(range==="essay") return sortByPriority(data.words.filter(w=>w.essayFreq));
+  // 搭配检测模式：只出有搭配数据的词（快轨推进用）
+  if(currentMode==="colloc") return sortByPriority(data.words.filter(w=>w.colloc&&w.colloc.length));
   return sortByPriority(data.words.slice());
 }
 // 优先级：🔴 failed(0) > 🟡 untested(1) > 🔵 mastered(2)
@@ -960,6 +963,34 @@ function renderQuestion(){
     input.classList.remove("hidden"); submit.classList.remove("hidden");
     choices.classList.add("hidden"); choices.innerHTML="";
     input.focus();
+  } else if(currentMode==="colloc"){
+    // 搭配检测（纯输入型，无干扰项，科学设计）：
+    // 玩法1：韩→中回忆——显示搭配，用户写中文含义（所有词，练听力阅读识别）
+    // 玩法2：中→韩听写——显示中文，用户写韩文搭配（仅写作词，练写作输出）
+    input.classList.remove("hidden"); submit.classList.remove("hidden");
+    choices.classList.add("hidden"); choices.innerHTML="";
+    // 该词必须有搭配数据（题目生成时已过滤）
+    const entry=w.colloc[Math.floor(Math.random()*w.colloc.length)];
+    // 解析搭配条目："도움을 요청하다 请求帮助" 或 "도움을 요청하다（请求帮助）"
+    const koPart=entry.split(/\s|（/)[0];
+    const zhMatch=entry.match(/(?:[\u4e00-\u9fff][^\s（]*)/);
+    const zhPart=zhMatch?zhMatch[0]:w.zh.split(/[，,]/)[0];
+    // 玩法分层：写作词→两种玩法随机（练输出）；普通词→只练识别（韩→中）
+    const play = w.essayFreq ? (Math.random()<0.5?"k2c":"c2k") : "k2c";
+    if(play==="k2c"){
+      document.getElementById("q-word").textContent=koPart;
+      document.getElementById("q-word").classList.remove("rev");
+      document.getElementById("q-hint").textContent=`🔗 搭配含义 · 词：${w.ko}(${w.zh.split(/[，,]/)[0]}) · 写出该搭配的意思`;
+      input.placeholder="输入中文含义..."; input.value="";
+      window._collocAnswer=zhPart; window._collocAnswerKo=koPart;
+    } else {
+      document.getElementById("q-word").textContent=zhPart;
+      document.getElementById("q-word").classList.add("rev");
+      document.getElementById("q-hint").textContent=`🔗 搭配听写 · 写作词：${w.ko}(${w.zh.split(/[，,]/)[0]}) · 写出韩文搭配`;
+      input.placeholder="输入韩文搭配..."; input.value="";
+      window._collocAnswer=koPart; window._collocAnswerKo=koPart;
+    }
+    input.focus();
   } else {
     document.getElementById("q-word").textContent=w.ko;
     document.getElementById("q-hint").textContent=`词性：${w.pos||"—"} · 选出正确含义`;
@@ -977,7 +1008,7 @@ function renderQuestion(){
         const ok=(o===correct);
         d.classList.add(ok?"correct":"wrong");
         if(!ok){ const ci=opts.indexOf(correct); choices.children[ci].classList.add("correct"); }
-        finishWord(w,ok);
+        finishWord(w,ok,"recog"); // 四选一：再认型，只推进快轨
       });
       choices.appendChild(d);
     });
@@ -989,8 +1020,42 @@ function submitAnswer(){
   const input=document.getElementById("q-input");
   const user=input.value.trim();
   if(!user) return;
-  let ok = currentMode==="k2c" ? fuzzyMatch(user,w.zh) : fuzzyMatch(user,w.ko);
+  let ok, target;
+  if(currentMode==="colloc"){
+    // 搭配检测：回忆型判分，答案已存于 _collocAnswer
+    ok=fuzzyMatch(user,window._collocAnswer);
+    target=window._collocAnswerKo+"（"+window._collocAnswer+"）";
+    showFeedbackColloc(w,user,ok);
+    return;
+  }
+  ok = currentMode==="k2c" ? fuzzyMatch(user,w.zh) : fuzzyMatch(user,w.ko);
   showFeedback(w,user,ok);
+}
+// 搭配检测反馈（回忆型：影响掌握状态）
+function showFeedbackColloc(w,user,ok){
+  window._lastFeedbackWord=w;
+  const fb=document.getElementById("q-feedback");
+  const answer=window._collocAnswer;
+  let html=`<div class="ans">${ok?"✅ 搭配正确！":"❌ 搭配错误"}</div>`;
+  html+=`<div style="margin-top:4px;">正确搭配：<b>${window._collocAnswerKo}</b>（${answer}）</div>`;
+  if(!ok) html+=`<div>你的答案：${user||"（未作答）"}</div>`;
+  // 展示该词全部高频搭配（正强化，巩固语感）
+  if(w.colloc&&w.colloc.length){
+    html+=`<div class="extra" style="margin-top:8px;"><b>📎 该词高频搭配（记熟这些）：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
+  }
+  // 写作高频词展示大作文句式
+  if(w.essayFreq&&w.essay.length){
+    html+=`<div class="extra" style="margin-top:10px;"><b>✍️ 大作文表达：</b></div>`;
+    html+=w.essay.slice(0,2).map(e=>{
+      const hasT=e.includes("（");
+      const koPart=hasT?e.split("（")[0]:e;
+      const zhPart=hasT?`（${e.split("（")[1]}`:"";
+      return `<div class="fb-essay"><div class="ko-line">${koPart}</div><div style="font-size:.8rem;">${zhPart}</div></div>`;
+    }).join("");
+  }
+  html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],${ok?true:false},'recall')">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
+  fb.className=`feedback ${ok?"correct":"wrong"}`;
+  fb.innerHTML=html;
 }
 
 function showFeedback(w,user,ok){
@@ -1025,11 +1090,11 @@ function showFeedback(w,user,ok){
   }
   // 下一步
   if(ok){
-    html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],true)">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
+    html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],true,'recall')">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
   } else {
     html+=`<div class="self-correction"><span style="font-size:.8rem;color:var(--text-2);margin-right:4px;">答对了但被误判？</span>
-      <button class="self-btn yes" onclick="finishWord(quizQueue[quizIndex],true)">✓ 我答对了</button>
-      <button class="self-btn no" onclick="finishWord(quizQueue[quizIndex],false)">✗ 确实错了</button></div>`;
+      <button class="self-btn yes" onclick="finishWord(quizQueue[quizIndex],true,'recall')">✓ 我答对了</button>
+      <button class="self-btn no" onclick="finishWord(quizQueue[quizIndex],false,'recall')">✗ 确实错了</button></div>`;
   }
   fb.className=`feedback ${ok?"correct":"wrong"}`;
   fb.innerHTML=html;
@@ -1072,7 +1137,8 @@ function copyImitatePrompt(){
   });
 }
 
-function finishWord(w,ok){
+function finishWord(w,ok,mode){
+  // mode: 'recall'=回忆型（韩→中/中→韩，决定掌握状态）| 'recog'=再认型（四选一/搭配检测，只推进快轨）
   const fb=document.getElementById("q-feedback");
   fb.className="feedback"; fb.innerHTML="";
   // 更新记忆状态
@@ -1083,15 +1149,23 @@ function finishWord(w,ok){
     let stageIdx=CURVE_STAGES.findIndex(s=>!w.curve[s]);
     if(stageIdx===-1) stageIdx=CURVE_STAGES.length-1;
     w.curve[CURVE_STAGES[stageIdx]]=Date.now();
-    if(w.right>=2 && w.right>w.wrong) w.status="mastered";
-    else if(w.wrong>0) w.status="failed";
+    if(mode==="recall"){
+      // 回忆型才可判定"掌握"：答对≥2次且多于答错
+      if(w.right>=2 && w.right>w.wrong) w.status="mastered";
+      else if(w.wrong>0) w.status="failed";
+      else if(w.status==="untested") w.status="failed"; // 学习过但还没到掌握线，先标记待巩固
+    } else {
+      // 再认型（四选一/搭配）答对：只推进快轨，不提升为掌握
+      // 若之前从未深轨确认过，保持"待深轨验证"
+      if(w.status==="untested") w.status="untested";
+    }
   } else {
     w.wrong++;
     // 重置曲线到 R1
     w.curve={};
     w.curve.R1=Date.now();
     if(!w.learned) w.learned=today();
-    w.status="failed";
+    w.status="failed"; // 答错（无论哪种模式）都视为未掌握
   }
   saveData(); updateStats();
   quizResults.push({w,ok});
