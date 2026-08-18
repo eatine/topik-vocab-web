@@ -190,7 +190,6 @@
       <button class="mode-btn" data-mode="c2k">✍️ 中→韩</button>
       <button class="mode-btn" data-mode="choice">🧩 四选一</button>
       <button class="mode-btn" data-mode="colloc">🔗 搭配检测</button>
-      <button class="mode-btn" data-mode="listen">🔊 听音辨字</button>
     </div>
     <div class="opt-grid" id="range-opts">
       <div class="opt sel" data-range="all">全部词汇</div>
@@ -1112,18 +1111,6 @@ function renderQuestion(){
       window._collocAnswer=koPart; window._collocAnswerKo=koPart;
     }
     input.focus();
-  } else if(currentMode==="listen"){
-    // 🔊 听音辨字：显示实际发音（音变后），用户写出原词拼写
-    // 对应"眼熟但耳生"陷阱：听到 [법치기]，映射回 법칙
-    input.classList.remove("hidden"); submit.classList.remove("hidden");
-    choices.classList.add("hidden"); choices.innerHTML="";
-    const pron=w.pron||w.ko; // 无音变的词显示其本身（同样可练听音拼写）
-    document.getElementById("q-word").textContent=pron;
-    document.getElementById("q-word").classList.remove("rev");
-    document.getElementById("q-hint").textContent=`🔊 听音辨字 · 听到 [${pron.replace(/[\[\]]/g,"")}]，写出对应的韩文拼写（${w.zh.split(/[，,]/)[0]}）`;
-    input.placeholder="输入拼写..."; input.value="";
-    window._listenAnswer=w.ko;
-    input.focus();
   } else {
     document.getElementById("q-word").textContent=w.ko;
     document.getElementById("q-hint").textContent=`词性：${w.pos||"—"} · 选出正确含义`;
@@ -1153,36 +1140,14 @@ function submitAnswer(){
   const input=document.getElementById("q-input");
   const user=input.value.trim();
   if(!user) return;
-  if(currentMode==="listen"){
-    // 🔊 听音辨字：回忆型判分（影响掌握状态）
-    const ok=fuzzyMatch(user,window._listenAnswer);
-    showListenFeedback(w,user,ok);
-    return;
-  }
-  let ok, target;
   if(currentMode==="colloc"){
     // 搭配检测：回忆型判分，答案已存于 _collocAnswer
-    ok=fuzzyMatch(user,window._collocAnswer);
-    target=window._collocAnswerKo+"（"+window._collocAnswer+"）";
+    const ok=fuzzyMatch(user,window._collocAnswer);
     showFeedbackColloc(w,user,ok);
     return;
   }
-  ok = currentMode==="k2c" ? fuzzyMatch(user,w.zh) : fuzzyMatch(user,w.ko);
+  const ok = currentMode==="k2c" ? fuzzyMatch(user,w.zh) : fuzzyMatch(user,w.ko);
   showFeedback(w,user,ok);
-}
-// 🔊 听音辨字反馈
-function showListenFeedback(w,user,ok){
-  window._lastFeedbackWord=w;
-  const fb=document.getElementById("q-feedback");
-  let html=`<div class="ans">${ok?"✅ 听音辨字成功！":"❌ 拼写错误"}</div>`;
-  html+=`<div style="margin-top:4px;">正确拼写：<b>${w.ko}</b>（${w.zh.split(/[，,]/)[0]}）</div>`;
-  if(!ok) html+=`<div>你的答案：${user||"（未作答）"}</div>`;
-  if(w.pron){
-    html+=`<div class="extra" style="margin-top:6px;">🔊 实际发音：<b style="color:var(--accent);">${w.pron}</b> —— 记住：听感与拼写不同，这是听力的关键！</div>`;
-  }
-  html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],${ok?true:false},'recall')">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
-  fb.className=`feedback ${ok?"correct":"wrong"}`;
-  fb.innerHTML=html;
 }
 // 搭配检测反馈（回忆型：影响掌握状态）
 function showFeedbackColloc(w,user,ok){
@@ -1216,8 +1181,12 @@ function showFeedback(w,user,ok){
   const fb=document.getElementById("q-feedback");
   const target = currentMode==="k2c" ? w.zh : w.ko;
   let html=`<div class="ans">${ok?"✅ 正确！":"❌ 错误"}</div>`;
+  // 答错时醒目提示：这是重新学习机会
+  if(!ok){
+    html+=`<div style="background:var(--red-light);border-left:4px solid var(--red);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:.88rem;"><b>⚠️ 答错了 → 仔细看下面的内容重新学习：</b><br>发音、搭配、写作表达——这些都是这个词的完整学习资料。学会它们比记答案更有用。</div>`;
+  }
   html+=`<div style="margin-top:4px;">正确：<b>${target}</b>${currentMode==="c2k"&&ok?"":""}${currentMode==="c2k"&&!ok?`（${w.zh}）`:""}</div>`;
-  // 实际发音展示（音变提示，听力/口语用）
+  // 实际发音展示（音变提示，听力/口语用）—— 显眼放在顶部
   if(w.pron){
     html+=`<div class="extra" style="margin-top:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);font-size:1.02rem;">${w.pron}</span> <span style="font-size:.76rem;color:var(--text-2);">（音变后真实读音，听力/口语重点）</span></div>`;
   }
@@ -1225,7 +1194,7 @@ function showFeedback(w,user,ok){
 
   // 常见搭配
   if(w.colloc&&w.colloc.length){
-    html+=`<div class="extra"><b>📎 常见搭配：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
+    html+=`<div class="extra" style="margin-top:8px;"><b>📎 常见搭配（记熟这些）：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
   }
   // 大作文例句（写作高频词）
   if(w.essayFreq&&w.essay.length){
@@ -1249,12 +1218,21 @@ function showFeedback(w,user,ok){
   if(ok){
     html+=`<button class="btn" style="margin-top:12px;" onclick="finishWord(quizQueue[quizIndex],true,'recall')">${quizIndex<quizQueue.length-1?"下一词 →":"查看结果 →"}</button>`;
   } else {
-    html+=`<div class="self-correction"><span style="font-size:.8rem;color:var(--text-2);margin-right:4px;">答对了但被误判？</span>
+    html+=`<div class="self-correction" style="margin-top:10px;"><span style="font-size:.88rem;color:var(--text-2);">答错了但被误判？</span>
       <button class="self-btn yes" onclick="finishWord(quizQueue[quizIndex],true,'recall')">✓ 我答对了</button>
-      <button class="self-btn no" onclick="finishWord(quizQueue[quizIndex],false,'recall')">✗ 确实错了</button></div>`;
+      <button class="self-btn no" onclick="finishWord(quizQueue[quizIndex],false,'recall')">✗ 确实错了（已学习）</button></div>`;
+    // 答错时多一个"再学一次"按钮：直接重新出这一题，巩固学习
+    html+=`<button class="btn" style="margin-top:10px;background:var(--red);font-size:.85rem;padding:9px 18px;" onclick="relearnCurrent()">🔁 再学一次这个词</button>`;
   }
   fb.className=`feedback ${ok?"correct":"wrong"}`;
   fb.innerHTML=html;
+}
+
+// 答错时"再学一次"：清除反馈、重新出当前题
+function relearnCurrent(){
+  const fb=document.getElementById("q-feedback");
+  fb.className="feedback"; fb.innerHTML="";
+  renderQuestion();
 }
 
 // 写作高频词仿写评估：在 essay 反馈下方嵌入
