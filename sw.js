@@ -1,6 +1,6 @@
 // Service Worker：TOPIK 词汇系统离线缓存
-// 版本号 v2（增加搭配检测模式，强制清理旧缓存）
-const CACHE_NAME = 'topik-vocab-v2';
+// 版本号 v3（取消听音辨字 + 增强答错反馈 + 网络优先策略）
+const CACHE_NAME = 'topik-vocab-v3';
 const ASSETS = [
   './index.html',
   './manifest.webmanifest',
@@ -8,16 +8,16 @@ const ASSETS = [
   './icon-512.png'
 ];
 
-// 安装：预缓存核心资源
+// 安装：预缓存核心资源 + 立即接管
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting())
   );
 });
 
-// 激活：清理所有非当前版本缓存
+// 激活：清理所有旧版本 + 立即控制所有客户端
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
