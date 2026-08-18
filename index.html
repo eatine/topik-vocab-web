@@ -1243,65 +1243,61 @@ function showFeedback(w,user,ok){
   html+=`<div style="margin-top:4px;">正确答案：<b>${target}</b>${currentMode==="c2k"&&ok?"":""}${currentMode==="c2k"&&!ok?`（${w.zh}）`:""}</div>`;
   if(!ok) html+=`<div>你的答案：${user||"（未作答）"}</div>`;
 
-  // ===== 完整学习卡片：答错时展示全部学习内容（与查词分析一致）=====
+  // ===== 完整学习卡片：无论对错都展示 ======
+  html+=`<div class="extra" style="margin-top:12px;border-top:2px solid var(--border);padding-top:12px;"><b>📖 完整学习资料（${w.ko}）</b></div>`;
+  // 基本信息（即使无 DETAILS 也有内容）
+  if(w.pos) html+=`<div class="extra" style="margin-top:6px;"><b>📌 词性：</b>${w.pos}${w.zh?` · ${w.zh}`:""}</div>`;
+  // 实际发音
+  if(w.pron){
+    html+=`<div class="extra" style="margin-top:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);font-size:1.05rem;">${w.pron}</span></div>`;
+  }
+  // 例句
+  if(w.example){
+    html+=`<div class="extra" style="margin-top:6px;"><b>📝 例句：</b>${w.example}</div>`;
+  }
+  // 搭配
+  if(w.colloc&&w.colloc.length){
+    html+=`<div class="extra" style="margin-top:8px;"><b>📎 常见搭配：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
+  }
+  // 近义词
+  if(w.syn){
+    html+=`<div class="extra" style="margin-top:6px;"><b>🔄 近义词辨析：</b>${w.syn}</div>`;
+  }
+  // 反义词
+  if(w.ant){
+    html+=`<div class="extra" style="margin-top:4px;"><b>❌ 反义词：</b>${w.ant}</div>`;
+  }
+  // 同源词
+  if(w.cognate){
+    html+=`<div class="extra" style="margin-top:4px;"><b>📚 同源词：</b>${w.cognate}</div>`;
+  }
+  // 真题例句
+  if(w.realExam){
+    html+=`<div class="extra" style="margin-top:4px;"><b>📄 真题例句：</b>${w.realExam}</div>`;
+  }
+  // 大作文句式（写作高频词）
+  if(w.essayFreq&&w.essay.length){
+    html+=`<div class="extra" style="margin-top:8px;"><b>✍️ 大作文句式：</b></div>`;
+    html+=w.essay.slice(0,2).map(e=>{
+      const hasT=e.includes("（");
+      const koPart=hasT?e.split("（")[0]:e;
+      const zhPart=hasT?`（${e.split("（")[1]}`:"";
+      return `<div class="fb-essay"><div class="ko-line">${koPart}</div><div style="font-size:.8rem;">${zhPart}</div></div>`;
+    }).join("");
+  }
+  // 仿写练习（写作高频词）
+  if(w.essayFreq&&w.essay.length){
+    const skel=w.essay[0]?w.essay[0].split("（")[0].trim():"";
+    html+=`<div class="extra" style="margin-top:14px;"><b>✍️ 仿写练习（用 [ ] 替换主题词造句）：</b></div>`;
+    html+=`<div class="fb-essay" style="background:#fff;"><div class="ko-line">${skel}</div></div>`;
+    html+=`<textarea id="imitate-input" placeholder="替换 [] 中的主题词，仿写一句韩文句子..." style="min-height:54px;margin-top:8px;font-size:.88rem;"></textarea>`;
+    html+=`<button class="btn purple" style="margin-top:8px;font-size:.82rem;padding:8px 16px;" onclick="genImitatePrompt()">📎 生成 AI 评估指令</button>`;
+    html+=`<div class="prompt-box hidden" id="imitate-prompt-box" style="margin-top:10px;"></div>`;
+    html+=`<button class="btn ghost hidden" id="imitate-copy-btn" style="margin-top:6px;font-size:.82rem;padding:8px 16px;" onclick="copyImitatePrompt()">📎 复制评估指令</button>`;
+  }
+  // 答错时附加提示
   if(!ok){
-    html+=`<div class="extra" style="margin-top:12px;border-top:2px solid var(--border);padding-top:12px;"><b>📖 完整学习资料（${w.ko}）</b></div>`;
-    // 实际发音
-    if(w.pron){
-      html+=`<div class="extra" style="margin-top:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);font-size:1.05rem;">${w.pron}</span></div>`;
-    }
-    // 例句
-    if(w.example){
-      html+=`<div class="extra" style="margin-top:6px;"><b>📝 例句：</b>${w.example}</div>`;
-    }
-    // 搭配
-    if(w.colloc&&w.colloc.length){
-      html+=`<div class="extra" style="margin-top:8px;"><b>📎 常见搭配：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
-    }
-    // 近义词
-    if(w.syn){
-      html+=`<div class="extra" style="margin-top:6px;"><b>🔄 近义词辨析：</b>${w.syn}</div>`;
-    }
-    // 反义词
-    if(w.ant){
-      html+=`<div class="extra" style="margin-top:4px;"><b>❌ 反义词：</b>${w.ant}</div>`;
-    }
-    // 同源词
-    if(w.cognate){
-      html+=`<div class="extra" style="margin-top:4px;"><b>📚 同源词：</b>${w.cognate}</div>`;
-    }
-    // 真题例句
-    if(w.realExam){
-      html+=`<div class="extra" style="margin-top:4px;"><b>📄 真题例句：</b>${w.realExam}</div>`;
-    }
-    // 大作文句式（写作高频词）
-    if(w.essayFreq&&w.essay.length){
-      html+=`<div class="extra" style="margin-top:8px;"><b>✍️ 大作文句式：</b></div>`;
-      html+=w.essay.slice(0,2).map(e=>{
-        const hasT=e.includes("（");
-        const koPart=hasT?e.split("（")[0]:e;
-        const zhPart=hasT?`（${e.split("（")[1]}`:"";
-        return `<div class="fb-essay"><div class="ko-line">${koPart}</div><div style="font-size:.8rem;">${zhPart}</div></div>`;
-      }).join("");
-    }
     html+=`<div style="font-size:.78rem;color:var(--text-2);margin-top:8px;">💡 已把这个词标记为待巩固，明天复习还会再考到你。答对了再点「下一词」。</div>`;
-  } else {
-    // ===== 答对时：也显示学习资料（但更简洁）=====
-    if(w.pron){
-      html+=`<div class="extra" style="margin-top:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);">${w.pron}</span></div>`;
-    }
-    if(w.colloc&&w.colloc.length){
-      html+=`<div class="extra" style="margin-top:6px;"><b>📎 常见搭配：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
-    }
-    if(w.essayFreq&&w.essay.length){
-      html+=`<div class="extra" style="margin-top:8px;"><b>✍️ 大作文表达：</b></div>`;
-      html+=w.essay.slice(0,1).map(e=>{
-        const hasT=e.includes("（");
-        const koPart=hasT?e.split("（")[0]:e;
-        const zhPart=hasT?`（${e.split("（")[1]}`:"";
-        return `<div class="fb-essay"><div class="ko-line">${koPart}</div><div style="font-size:.8rem;">${zhPart}</div></div>`;
-      }).join("");
-    }
   }
   // 下一步
   if(ok){
