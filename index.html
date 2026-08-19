@@ -709,20 +709,10 @@ if (!data || !data.words || !data.words.length) {
     const src = BASE_WORDS.find(b=>b[0]===w.ko);
     if(src && src[3] && !w.pron) w.pron = src[3];
   });
-  // 数据迁移：已 mastered 词自动补全所有曲线阶段（修复"反复出现在未通过列表"bug）
-  let migrated = false;
-  data.words.forEach(w=>{
-    if(w.status==="mastered"){
-      for(let i=0;i<CURVE_STAGES.length;i++){
-        if(!w.curve[CURVE_STAGES[i]]) {
-          w.curve[CURVE_STAGES[i]] = Date.now();
-          migrated = true;
-        }
-      }
-    }
-  });
-  if(merged.length) data.words = data.words.concat(merged);
-  if(merged.length || migrated) saveData();
+  if(merged.length){
+    data.words = data.words.concat(merged);
+    saveData();
+  }
 }
 function saveData(){ localStorage.setItem(KEY, JSON.stringify(data)); }
 
@@ -1071,8 +1061,8 @@ function dueWords(){
   const t=today();
   return data.words.filter(w=>{
     if(!w.learned) return false;
-    // 已掌握的词不再出现在到期列表（无需再复习）
-    if(w.status==="mastered") return false;
+    // 已掌握的词**仍按曲线到期的长间隔复习**（D30/D60），避免记忆淡化
+    // 不再排除 mastered —— 艾宾浩斯要求长期巩固
     // 未完成所有轮次
     const done=CURVE_STAGES.filter(s=>w.curve[s]);
     if(done.length>=CURVE_STAGES.length) return false;
@@ -1374,14 +1364,7 @@ function finishWord(w,ok,mode){
     w.curve[CURVE_STAGES[stageIdx]]=Date.now();
     if(mode==="recall"){
       // 回忆型才可判定"掌握"：答对≥2次且多于答错
-      if(w.right>=2 && w.right>w.wrong){
-        w.status="mastered";
-        // 关键修复：mastered 时自动完成所有剩余曲线阶段
-        // 避免 mastered 词因曲线未完成而反复出现在到期列表
-        for(let i=0;i<CURVE_STAGES.length;i++){
-          if(!w.curve[CURVE_STAGES[i]]) w.curve[CURVE_STAGES[i]]=Date.now();
-        }
-      }
+      if(w.right>=2 && w.right>w.wrong) w.status="mastered";
       else if(w.wrong>0) w.status="failed";
       // untested 答对 1 次保持 untested（不直接变 failed，更直觉）
       else if(w.status==="untested") w.status="untested";
@@ -1449,6 +1432,7 @@ function renderReview(){
 
   let html=`<div style="font-size:.85rem;color:var(--text-2);margin-bottom:8px;">📋 今日复习任务 | ${t}</div>`;
   html+=`<div style="background:var(--accent-light);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.84rem;">🚀 快轨：还有 <b style="color:var(--accent);">${untestedCount}</b> 个新词未测（R1⏳）→ 建议优先推进快轨，再做深轨巩固</div>`;
+  html+=`<div style="background:#fff9e6;border-left:3px solid var(--orange);border-radius:0 6px 6px 0;padding:6px 10px;margin-bottom:8px;font-size:.78rem;color:#7d5a00;">💡 艾宾浩斯曲线意图：已掌握词也会按 D30/D60 长间隔出现一次，让记忆长期巩固——不是逃避重复。</div>`;
 
   if(red.length){
     html+=`<div style="font-size:.85rem;color:var(--red);font-weight:700;margin:8px 0 4px;">🔴 优先（未通过，需巩固）：${red.length} 词</div>`;
