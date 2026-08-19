@@ -709,10 +709,20 @@ if (!data || !data.words || !data.words.length) {
     const src = BASE_WORDS.find(b=>b[0]===w.ko);
     if(src && src[3] && !w.pron) w.pron = src[3];
   });
-  if(merged.length){
-    data.words = data.words.concat(merged);
-    saveData();
-  }
+  // 数据迁移：已 mastered 词自动补全所有曲线阶段（修复"反复出现在未通过列表"bug）
+  let migrated = false;
+  data.words.forEach(w=>{
+    if(w.status==="mastered"){
+      for(let i=0;i<CURVE_STAGES.length;i++){
+        if(!w.curve[CURVE_STAGES[i]]) {
+          w.curve[CURVE_STAGES[i]] = Date.now();
+          migrated = true;
+        }
+      }
+    }
+  });
+  if(merged.length) data.words = data.words.concat(merged);
+  if(merged.length || migrated) saveData();
 }
 function saveData(){ localStorage.setItem(KEY, JSON.stringify(data)); }
 
@@ -1061,6 +1071,8 @@ function dueWords(){
   const t=today();
   return data.words.filter(w=>{
     if(!w.learned) return false;
+    // 已掌握的词不再出现在到期列表（无需再复习）
+    if(w.status==="mastered") return false;
     // 未完成所有轮次
     const done=CURVE_STAGES.filter(s=>w.curve[s]);
     if(done.length>=CURVE_STAGES.length) return false;
@@ -1362,12 +1374,19 @@ function finishWord(w,ok,mode){
     w.curve[CURVE_STAGES[stageIdx]]=Date.now();
     if(mode==="recall"){
       // 回忆型才可判定"掌握"：答对≥2次且多于答错
-      if(w.right>=2 && w.right>w.wrong) w.status="mastered";
+      if(w.right>=2 && w.right>w.wrong){
+        w.status="mastered";
+        // 关键修复：mastered 时自动完成所有剩余曲线阶段
+        // 避免 mastered 词因曲线未完成而反复出现在到期列表
+        for(let i=0;i<CURVE_STAGES.length;i++){
+          if(!w.curve[CURVE_STAGES[i]]) w.curve[CURVE_STAGES[i]]=Date.now();
+        }
+      }
       else if(w.wrong>0) w.status="failed";
-      else if(w.status==="untested") w.status="failed"; // 学习过但还没到掌握线，先标记待巩固
+      // untested 答对 1 次保持 untested（不直接变 failed，更直觉）
+      else if(w.status==="untested") w.status="untested";
     } else {
       // 再认型（四选一/搭配）答对：只推进快轨，不提升为掌握
-      // 若之前从未深轨确认过，保持"待深轨验证"
       if(w.status==="untested") w.status="untested";
     }
   } else {
@@ -1378,7 +1397,9 @@ function finishWord(w,ok,mode){
     if(!w.learned) w.learned=today();
     w.status="failed"; // 答错（无论哪种模式）都视为未掌握
   }
-  saveData(); updateStats();
+  saveData();
+  // debug :=
+  updateStats();
   quizResults.push({w,ok});
   if(ok) quizScore++;
   if(quizIndex<quizQueue.length-1){ quizIndex++; renderQuestion(); }
