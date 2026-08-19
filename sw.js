@@ -1,6 +1,6 @@
 // Service Worker：TOPIK 词汇系统离线缓存
-// 版本号 v3（取消听音辨字 + 增强答错反馈 + 网络优先策略）
-const CACHE_NAME = 'topik-vocab-v3';
+// 版本号 v4（修复 mastered 词反复出现 bug + 数据迁移）
+const CACHE_NAME = 'topik-vocab-v4';
 const ASSETS = [
   './index.html',
   './manifest.webmanifest',
