@@ -613,50 +613,94 @@ const ESSAY = {
 
 // 词汇深度资料（例句/近义词/反义词/同源词/真题例句）——查词导入时由 AI 补充，这里为高频词预置
 const DETAILS = {
-  "요청하다": {example:"고객이 추가 서비스를 요청했다.（客户请求了附加服务）", syn:"부탁하다(口语) vs 신청하다(申请) vs 요구하다(强硬)", ant:"거절하다, 거부하다", cognate:"요청[名], 요청서[名], 요청되다[被动]", realExam:"고객이 추가 서비스를 요청했으나 접수가 지연되었다.（52회 듣기）"},
-  "납득하다": {example:"그는 그 이유를 납득할 수 없었다.（他无法理解那个理由）", syn:"이해하다(一般) vs 납득하다(说服自己接受)", ant:"의심하다, 불신하다", cognate:"납득[名], 납득시키다[使动]", realExam:"시민들이 정책을 납득할 수 있도록 설명해야 한다.（64회 읽기）"},
-  "감안하다": {example:"상황을 감안하여 결정을 내렸다.（考虑情况后做了决定）", syn:"고려하다(考虑) vs 참작하다(酌量)", ant:"무시하다, 간과하다", cognate:"감안[名], 감안해서", realExam:""},
-  "공감대": {example:"문제 해결을 위한 공감대가 필요하다.（需要解决问题的共识）", syn:"합의(协议) vs 동의(同意)", ant:"이견, 대립", cognate:"공감[名], 공감하다", realExam:""},
-  "제기하다": {example:"전문가들이 문제점을 제기했다.（专家们提出了问题点）", syn:"제안하다(提议) vs 주장하다(主张)", ant:"철회하다, 취소하다", cognate:"제기[名], 제기되다[被动]", realExam:""},
-  "소통": {example:"부모와 자녀 사이의 소통이 중요하다.（亲子间的沟通很重要）", syn:"의사소통(意思沟通) vs 대화(对话)", ant:"단절, 갈등", cognate:"소통하다, 원활한 소통", realExam:""},
-  "역량": {example:"직무에 필요한 역량을 갖추어야 한다.（需具备职务所需能力）", syn:"능력(能力) vs 실력(实力)", ant:"무능", cognate:"역량강화, 전문역량", realExam:""},
-  "인식": {example:"환경 문제에 대한 인식이 높아졌다.（对环保问题的认识提高了）", syn:"의식(意识) vs 자각(自觉)", ant:"무지, 무관심", cognate:"인식하다, 인식되다", realExam:""},
-  "실천": {example:"계획을 실천으로 옮겨야 한다.（要把计划付诸实践）", syn:"이행(履行) vs 수행(执行)", ant:"구두선, 공언", cognate:"실천하다, 실천력", realExam:""},
-  "부각되다": {example:"그 문제의 심각성이 부각되었다.（那个问题的严重性被凸显了）", syn:"두드러지다(突出) vs 강조되다(被强调)", ant:"묻히다, 가려지다", cognate:"부각[名], 부각시키다", realExam:""},
-  "직결되다": {example:"소득과 행복이 직결되지는 않는다.（收入和幸福并不直接相关）", syn:"연결되다(相连) vs 관련되다(相关)", ant:"무관하다", cognate:"직결[名], 직결하다", realExam:""},
-  "침해하다": {example:"개인 정보를 침해해서는 안 된다.（不得侵犯个人信息）", syn:"위반하다(违反) vs 침범하다(侵犯)", ant:"보호하다, 존중하다", cognate:"침해[名], 침해되다[被动]", realExam:""},
-  "미치다": {example:"기술 발전이 생활에 큰 영향을 미친다.（技术发展对生活产生巨大影响）", syn:"영향을 주다(产生影响) vs 파급되다(波及)", ant:"", cognate:"영향을 미치다", realExam:""},
-  "끼치다": {example:"폐를 끼쳐서 죄송합니다.（给您添麻烦了，抱歉）", syn:"주다(给予) vs 발생시키다(引发)", ant:"", cognate:"영향을 끼치다, 피해를 끼치다", realExam:""},
-  "대체하다": {example:"플라스틱을 종이로 대체하고 있다.（正在用纸替代塑料）", syn:"교체하다(更换) vs 대신하다(代替)", ant:"유지하다", cognate:"대체[名], 대체품[名]", realExam:""},
-  "놓치다": {example:"기회를 놓치지 마세요.（别错过机会）", syn:"잃다(失去) vs 빠뜨리다(遗漏)", ant:"잡다, 붙잡다", cognate:"놓치기 쉽다", realExam:""},
-  "얻다": {example:"좋은 경험을 얻을 수 있었다.（获得了宝贵经验）", syn:"획득하다(获得) vs 취득하다(取得)", ant:"잃다, 상실하다", cognate:"얻어내다, 성과를 얻다", realExam:""},
-  "키우다": {example:"아이의 자신감을 키워 주세요.（请培养孩子的自信心）", syn:"기르다(养育) vs 향상시키다(提升)", ant:"줄이다, 약화시키다", cognate:"실력을 키우다", realExam:""},
-  "늘어나다": {example:"취업 경쟁이 점점 늘어나고 있다.（就业竞争越来越大）", syn:"증가하다(增加) vs 확대되다(扩大)", ant:"줄어들다, 감소하다", cognate:"늘어남[名]", realExam:""},
-  "커지다": {example:"그 차이가 점점 커지고 있다.（那个差距越来越大）", syn:"확대되다(扩大) vs 증대되다(增大)", ant:"작아지다, 줄어들다", cognate:"확대[名]", realExam:""},
-  "바람직하다": {example:"바람직한 소비 문화가 필요하다.（需要理想的消费文化）", syn:"이상적이다(理想的) vs 훌륭하다(优秀)", ant:"바람직하지 않다", cognate:"바람직성", realExam:""},
-  "적절하다": {example:"적절한 시기에 결정해야 한다.（应在恰当的时机做决定）", syn:"적합하다(合适) vs 알맞다(恰当)", ant:"부적절하다, 부적합하다", cognate:"적절성, 적절히[副]", realExam:""},
-  "탁월하다": {example:"그는 탁월한 실력을 갖추었다.（他具备卓越的实力）", syn:"뛰어나다(出众) vs 우수하다(优秀)", ant:"평범하다, 보통이다", cognate:"탁월성, 탁월하게[副]", realExam:""},
-  "정착하다": {example:"새로운 문화가 사회에 정착했다.（新文化在社会上扎了根）", syn:"자리잡다(扎根) vs 안정되다(稳定)", ant:"사라지다, 소멸하다", cognate:"정착[名], 정착되다[被动]", realExam:""},
-  "할당하다": {example:"예산을 각 부서에 할당했다.（把预算分配给了各部门）", syn:"배분하다(分配) vs 배정하다(配置)", ant:"회수하다", cognate:"할당[名], 할당량[名]", realExam:""},
-  "피해": {example:"태풍으로 큰 피해를 입었다.（因台风遭受了巨大损失）", syn:"손해(损失) vs 손실(亏损)", ant:"이익, 혜택", cognate:"피해자[名], 피해를 입다/주다", realExam:""},
-  "악영향": {example:"과도한 게임이 건강에 악영향을 준다.（过度游戏对健康有不良影响）", syn:"부정적 영향(负面影响)", ant:"긍정적 영향, 좋은 영향", cognate:"악영향을 미치다/끼치다", realExam:""},
-  "단절": {example:"세대 간 소통의 단절이 문제다.（代际沟通断层是个问题）", syn:"절단(切断) vs 중단(中断)", ant:"연결, 이어짐", cognate:"단절되다, 단절시키다", realExam:""},
-  "저해하다": {example:"과도한 규제가 혁신을 저해한다.（过度管制阻碍创新）", syn:"방해하다(妨碍) vs 막다(阻挡)", ant:"촉진하다, 돕다", cognate:"저해[名], 저해요인", realExam:""},
-  "조장하다": {example:"허위 정보가 불안을 조장한다.（虚假信息助长不安）", syn:"부추기다(怂恿) vs 선동하다(煽动)", ant:"억제하다, 진정시키다", cognate:"조장[名]", realExam:""},
-  "염려하다": {example:"아이의 건강을 염려하고 있다.（正担心孩子的健康）", syn:"걱정하다(担心) vs 우려하다(忧虑)", ant:"안심하다, 믿다", cognate:"염려[名], 염려스럽다[形]", realExam:""},
-  "원망하다": {example:"자신의 운명을 원망했다.（埋怨了自己的命运）", syn:"탓하다(责怪) vs 불평하다(抱怨)", ant:"감사하다, 용서하다", cognate:"원망[名], 원망스럽다", realExam:""},
-  "의지": {example:"강한 의지로 어려움을 이겨냈다.（靠坚强意志克服了困难）", syn:"결의(决心) vs 의욕(干劲)", ant:"나약함", cognate:"의지력[名], 의지하다(依靠)", realExam:""},
-  "유행": {example:"그 스타일이 유행하고 있다.（那种风格正在流行）", syn:"트렌드(趋势) vs 유행바람(潮流)", ant:"유행 지남", cognate:"유행하다, 유행을 따르다", realExam:""},
-  "상속": {example:"재산 상속 문제로 갈등이 생겼다.（因财产继承问题产生了矛盾）", syn:"승계(承继) vs 계승(继承)", ant:"", cognate:"상속하다, 상속세[名]", realExam:""},
-  "물려주다": {example:"전통을 다음 세대에게 물려주어야 한다.（要把传统传给下一代）", syn:"전승하다(传承) vs 남기다(留下)", ant:"없애다, 버리다", cognate:"물려받다[被动]", realExam:""},
-  "되찾다": {example:"잃었던 건강을 되찾았다.（恢复了失去的健康）", syn:"회복하다(恢复) vs 되돌려받다(取回)", ant:"잃다", cognate:"되찾기[名]", realExam:""},
-  "떠오르다": {example:"좋은 아이디어가 떠올랐다.（想到了一个好点子）", syn:"생각나다(想起) vs 번뜩이다(灵光一现)", ant:"잊다", cognate:"떠올리다[使动]", realExam:""},
-  "밝히다": {example:"그는 자신의 입장을 밝혔다.（他表明了自己的立场）", syn:"표명하다(表明) vs 드러내다(显露)", ant:"숨기다, 감추다", cognate:"입장을 밝히다", realExam:""},
-  "드러내다": {example:"그는 자신의 속마음을 드러냈다.（他显露了内心想法）", syn:"노출하다(暴露) vs 표출하다(表露)", ant:"숨기다, 은폐하다", cognate:"드러나다[自动]", realExam:""},
-  "보고하다": {example:"상사에게 업무 결과를 보고했다.（向上司汇报了工作结果）", syn:"보고드리다(敬语) vs 알리다(告知)", ant:"", cognate:"보고[名], 보고서[名]", realExam:""},
-  "살리다": {example:"지역 경제를 살리기 위한 정책이 나왔다.（出台了振兴地区经济的政策）", syn:"부활시키다(复兴) vs 되살리다(重振)", ant:"죽이다, 망치다", cognate:"살아나다[自动]", realExam:""},
-  "사라지다": {example:"그 문제는 완전히 사라졌다.（那个问题完全消失了）", syn:"없어지다(消失) vs 소멸하다(消灭)", ant:"나타나다, 생기다", cognate:"사라짐[名]", realExam:""},
-  "잃다": {example:"그는 자신감을 잃었다.（他失去了自信）", syn:"상실하다(丧失) vs 놓치다(错过)", ant:"얻다, 찾다", cognate:"자신감을 잃다", realExam:""}
+  "요청하다": {example:"고객이 추가 서비스를 요청했다.（客户请求了附加服务）", syn:"부탁하다(口语) vs 신청하다(申请) vs 요구하다(强硬)", ant:"거절하다, 거부하다", cognate:"요청[名], 요청서[名], 요청되다[被动]", realExam:"고객이 추가 서비스를 요청했으나 접수가 지연되었다.（52회 듣기）"} hanja:"要請"},
+  "납득하다": {example:"그는 그 이유를 납득할 수 없었다.（他无法理解那个理由）", syn:"이해하다(一般) vs 납득하다(说服自己接受)", ant:"의심하다, 불신하다", cognate:"납득[名], 납득시키다[使动]", realExam:"시민들이 정책을 납득할 수 있도록 설명해야 한다.（64회 읽기）"} hanja:"納得"},
+  "감안하다": {example:"상황을 감안하여 결정을 내렸다.（考虑情况后做了决定）", syn:"고려하다(考虑) vs 참작하다(酌量)", ant:"무시하다, 간과하다", cognate:"감안[名], 감안해서", realExam:""} hanja:"勘案"},
+  "공감대": {example:"문제 해결을 위한 공감대가 필요하다.（需要解决问题的共识）", syn:"합의(协议) vs 동의(同意)", ant:"이견, 대립", cognate:"공감[名], 공감하다", realExam:""} hanja:"共感帶"},
+  "제기하다": {example:"전문가들이 문제점을 제기했다.（专家们提出了问题点）", syn:"제안하다(提议) vs 주장하다(主张)", ant:"철회하다, 취소하다", cognate:"제기[名], 제기되다[被动]", realExam:""} hanja:"提起"},
+  "소통": {example:"부모와 자녀 사이의 소통이 중요하다.（亲子间的沟通很重要）", syn:"의사소통(意思沟通) vs 대화(对话)", ant:"단절, 갈등", cognate:"소통하다, 원활한 소통", realExam:""} hanja:"疏通"},
+  "역량": {example:"직무에 필요한 역량을 갖추어야 한다.（需具备职务所需能力）", syn:"능력(能力) vs 실력(实力)", ant:"무능", cognate:"역량강화, 전문역량", realExam:""} hanja:"力量"},
+  "인식": {example:"환경 문제에 대한 인식이 높아졌다.（对环保问题的认识提高了）", syn:"의식(意识) vs 자각(自觉)", ant:"무지, 무관심", cognate:"인식하다, 인식되다", realExam:""} hanja:"認識"},
+  "실천": {example:"계획을 실천으로 옮겨야 한다.（要把计划付诸实践）", syn:"이행(履行) vs 수행(执行)", ant:"구두선, 공언", cognate:"실천하다, 실천력", realExam:""} hanja:"實踐"},
+  "부각되다": {example:"그 문제의 심각성이 부각되었다.（那个问题的严重性被凸显了）", syn:"두드러지다(突出) vs 강조되다(被强调)", ant:"묻히다, 가려지다", cognate:"부각[名], 부각시키다", realExam:""} hanja:"浮刻"},
+  "직결되다": {example:"소득과 행복이 직결되지는 않는다.（收入和幸福并不直接相关）", syn:"연결되다(相连) vs 관련되다(相关)", ant:"무관하다", cognate:"직결[名], 직결하다", realExam:""} hanja:"直結"},
+  "침해하다": {example:"개인 정보를 침해해서는 안 된다.（不得侵犯个人信息）", syn:"위반하다(违反) vs 침범하다(侵犯)", ant:"보호하다, 존중하다", cognate:"침해[名], 침해되다[被动]", realExam:""} hanja:"侵害"},
+  "미치다": {example:"기술 발전이 생활에 큰 영향을 미친다.（技术发展对生活产生巨大影响）", syn:"영향을 주다(产生影响) vs 파급되다(波及)", ant:"", cognate:"영향을 미치다", realExam:""} hanja:"(固有词)"},
+  "끼치다": {example:"폐를 끼쳐서 죄송합니다.（给您添麻烦了，抱歉）", syn:"주다(给予) vs 발생시키다(引发)", ant:"", cognate:"영향을 끼치다, 피해를 끼치다", realExam:""} hanja:"(固有词)"},
+  "대체하다": {example:"플라스틱을 종이로 대체하고 있다.（正在用纸替代塑料）", syn:"교체하다(更换) vs 대신하다(代替)", ant:"유지하다", cognate:"대체[名], 대체품[名]", realExam:""} hanja:"代替"},
+  "놓치다": {example:"기회를 놓치지 마세요.（别错过机会）", syn:"잃다(失去) vs 빠뜨리다(遗漏)", ant:"잡다, 붙잡다", cognate:"놓치기 쉽다", realExam:""} hanja:"(固有词)"},
+  "얻다": {example:"좋은 경험을 얻을 수 있었다.（获得了宝贵经验）", syn:"획득하다(获得) vs 취득하다(取得)", ant:"잃다, 상실하다", cognate:"얻어내다, 성과를 얻다", realExam:""} hanja:"(固有词)"},
+  "키우다": {example:"아이의 자신감을 키워 주세요.（请培养孩子的自信心）", syn:"기르다(养育) vs 향상시키다(提升)", ant:"줄이다, 약화시키다", cognate:"실력을 키우다", realExam:""} hanja:"(固有词)"},
+  "늘어나다": {example:"취업 경쟁이 점점 늘어나고 있다.（就业竞争越来越大）", syn:"증가하다(增加) vs 확대되다(扩大)", ant:"줄어들다, 감소하다", cognate:"늘어남[名]", realExam:""} hanja:"(固有词)"},
+  "커지다": {example:"그 차이가 점점 커지고 있다.（那个差距越来越大）", syn:"확대되다(扩大) vs 증대되다(增大)", ant:"작아지다, 줄어들다", cognate:"확대[名]", realExam:""} hanja:"(固有词)"},
+  "바람직하다": {example:"바람직한 소비 문화가 필요하다.（需要理想的消费文化）", syn:"이상적이다(理想的) vs 훌륭하다(优秀)", ant:"바람직하지 않다", cognate:"바람직성", realExam:""} hanja:"(固有词)"},
+  "적절하다": {example:"적절한 시기에 결정해야 한다.（应在恰当的时机做决定）", syn:"적합하다(合适) vs 알맞다(恰当)", ant:"부적절하다, 부적합하다", cognate:"적절성, 적절히[副]", realExam:""} hanja:"適切"},
+  "탁월하다": {example:"그는 탁월한 실력을 갖추었다.（他具备卓越的实力）", syn:"뛰어나다(出众) vs 우수하다(优秀)", ant:"평범하다, 보통이다", cognate:"탁월성, 탁월하게[副]", realExam:""} hanja:"卓越"},
+  "정착하다": {example:"새로운 문화가 사회에 정착했다.（新文化在社会上扎了根）", syn:"자리잡다(扎根) vs 안정되다(稳定)", ant:"사라지다, 소멸하다", cognate:"정착[名], 정착되다[被动]", realExam:""} hanja:"定着"},
+  "할당하다": {example:"예산을 각 부서에 할당했다.（把预算分配给了各部门）", syn:"배분하다(分配) vs 배정하다(配置)", ant:"회수하다", cognate:"할당[名], 할당량[名]", realExam:""} hanja:"割當"},
+  "피해": {example:"태풍으로 큰 피해를 입었다.（因台风遭受了巨大损失）", syn:"손해(损失) vs 손실(亏损)", ant:"이익, 혜택", cognate:"피해자[名], 피해를 입다/주다", realExam:""} hanja:"被害"},
+  "악영향": {example:"과도한 게임이 건강에 악영향을 준다.（过度游戏对健康有不良影响）", syn:"부정적 영향(负面影响)", ant:"긍정적 영향, 좋은 영향", cognate:"악영향을 미치다/끼치다", realExam:""} hanja:"惡影響"},
+  "단절": {example:"세대 간 소통의 단절이 문제다.（代际沟通断层是个问题）", syn:"절단(切断) vs 중단(中断)", ant:"연결, 이어짐", cognate:"단절되다, 단절시키다", realExam:""} hanja:"斷絕"},
+  "저해하다": {example:"과도한 규제가 혁신을 저해한다.（过度管制阻碍创新）", syn:"방해하다(妨碍) vs 막다(阻挡)", ant:"촉진하다, 돕다", cognate:"저해[名], 저해요인", realExam:""} hanja:"沮害"},
+  "조장하다": {example:"허위 정보가 불안을 조장한다.（虚假信息助长不安）", syn:"부추기다(怂恿) vs 선동하다(煽动)", ant:"억제하다, 진정시키다", cognate:"조장[名]", realExam:""} hanja:"助長"},
+  "염려하다": {example:"아이의 건강을 염려하고 있다.（正担心孩子的健康）", syn:"걱정하다(担心) vs 우려하다(忧虑)", ant:"안심하다, 믿다", cognate:"염려[名], 염려스럽다[形]", realExam:""} hanja:"念慮"},
+  "원망하다": {example:"자신의 운명을 원망했다.（埋怨了自己的命运）", syn:"탓하다(责怪) vs 불평하다(抱怨)", ant:"감사하다, 용서하다", cognate:"원망[名], 원망스럽다", realExam:""} hanja:"怨望"},
+  "의지": {example:"강한 의지로 어려움을 이겨냈다.（靠坚强意志克服了困难）", syn:"결의(决心) vs 의욕(干劲)", ant:"나약함", cognate:"의지력[名], 의지하다(依靠)", realExam:""} hanja:"意志"},
+  "유행": {example:"그 스타일이 유행하고 있다.（那种风格正在流行）", syn:"트렌드(趋势) vs 유행바람(潮流)", ant:"유행 지남", cognate:"유행하다, 유행을 따르다", realExam:""} hanja:"流行"},
+  "상속": {example:"재산 상속 문제로 갈등이 생겼다.（因财产继承问题产生了矛盾）", syn:"승계(承继) vs 계승(继承)", ant:"", cognate:"상속하다, 상속세[名]", realExam:""} hanja:"相續"},
+  "물려주다": {example:"전통을 다음 세대에게 물려주어야 한다.（要把传统传给下一代）", syn:"전승하다(传承) vs 남기다(留下)", ant:"없애다, 버리다", cognate:"물려받다[被动]", realExam:""} hanja:"(固有词)"},
+  "되찾다": {example:"잃었던 건강을 되찾았다.（恢复了失去的健康）", syn:"회복하다(恢复) vs 되돌려받다(取回)", ant:"잃다", cognate:"되찾기[名]", realExam:""} hanja:"(固有词)"},
+  "떠오르다": {example:"좋은 아이디어가 떠올랐다.（想到了一个好点子）", syn:"생각나다(想起) vs 번뜩이다(灵光一现)", ant:"잊다", cognate:"떠올리다[使动]", realExam:""} hanja:"(固有词)"},
+  "밝히다": {example:"그는 자신의 입장을 밝혔다.（他表明了自己的立场）", syn:"표명하다(表明) vs 드러내다(显露)", ant:"숨기다, 감추다", cognate:"입장을 밝히다", realExam:""} hanja:"(固有词)"},
+  "드러내다": {example:"그는 자신의 속마음을 드러냈다.（他显露了内心想法）", syn:"노출하다(暴露) vs 표출하다(表露)", ant:"숨기다, 은폐하다", cognate:"드러나다[自动]", realExam:""} hanja:"(固有词)"},
+  "보고하다": {example:"상사에게 업무 결과를 보고했다.（向上司汇报了工作结果）", syn:"보고드리다(敬语) vs 알리다(告知)", ant:"", cognate:"보고[名], 보고서[名]", realExam:""} hanja:"報告"},
+  "살리다": {example:"지역 경제를 살리기 위한 정책이 나왔다.（出台了振兴地区经济的政策）", syn:"부활시키다(复兴) vs 되살리다(重振)", ant:"죽이다, 망치다", cognate:"살아나다[自动]", realExam:""} hanja:"(固有词)"},
+  "사라지다": {example:"그 문제는 완전히 사라졌다.（那个问题完全消失了）", syn:"없어지다(消失) vs 소멸하다(消灭)", ant:"나타나다, 생기다", cognate:"사라짐[名]", realExam:""} hanja:"(固有词)"},
+  "잃다": {example:"그는 자신감을 잃었다.（他失去了自信）", syn:"상실하다(丧失) vs 놓치다(错过)", ant:"얻다, 찾다", cognate:"자신감을 잃다", realExam:""} hanja:"(固有词)"}
+,
+  "가동률": {example:"공장의 가동률이 회복되었다.（工厂开工率恢复了）", syn:"가동(运转) vs 정지(停止)", ant:"정지, 중단", cognate:"가동[名], 가동하다", hanja:"稼動率", realExam:""}
+,
+  "감소": {example:"오염 물질이 크게 감소했다.（污染物大幅减少）", syn:"감퇴(减退) vs 축소(缩减)", ant:"증가, 확대", cognate:"감소하다, 감소세[名]", hanja:"減少", realExam:""}
+,
+  "걸다": {example:"벽에 그림을 걸었다.（把画挂在了墙上）", syn:"매달다(悬挂) vs 게시하다(张贴)", ant:"내리다, 떼다", cognate:"걸려 있다[被动]", hanja:"(固有词)", realExam:""}
+,
+  "검증되다": {example:"그 방법의 효과가 검증되었다.（那种方法的效果得到了验证）", syn:"입증되다(被证实) vs 확인되다(被确认)", ant:"부정되다, 의심되다", cognate:"검증[名], 검증하다", hanja:"檢證", realExam:""}
+,
+  "경영진": {example:"경영진이 새로운 전략을 발표했다.（管理层发布了新战略）", syn:"간부(干部) vs 관리자(管理者)", ant:"", cognate:"경영[名], 경영진 회의", hanja:"經營陣", realExam:""}
+,
+  "근로자": {example:"근로자의 권리를 보호해야 한다.（应保护劳动者的权利）", syn:"노동자(劳动者) vs 직원(职员)", ant:"고용주, 사업주", cognate:"근로[名], 근로 환경", hanja:"勤勞者", realExam:""}
+,
+  "기쁨": {example:"아이의 성장이 큰 기쁨을 준다.（孩子的成长带来巨大喜悦）", syn:"기쁘다(喜悦) vs 행복(幸福)", ant:"슬픔, 고통", cognate:"기쁘다[形]", hanja:"(固有词)", realExam:""}
+,
+  "깨닫다": {example:"중요한 사실을 깨달았다.（领悟到了重要的事实）", syn:"알아차리다(察觉) vs 자각하다(自觉)", ant:"모르다, 간과하다", cognate:"깨달음[名]", hanja:"(固有词)", realExam:""}
+,
+  "나누다": {example:"경험을 나누는 자리를 마련했다.（安排了分享经验的场合）", syn:"분배하다(分配) vs 공유하다(共享)", ant:"모으다, 독점하다", cognate:"나눔[名], 나눠주다", hanja:"(固有词)", realExam:""}
+,
+  "담다": {example:"그릇에 물을 담았다.（把水装进了碗里）", syn:"넣다(放入) vs 채우다(装满)", ant:"비우다, 쏟다", cognate:"담기다[被动]", hanja:"(固有词)", realExam:""}
+,
+  "대비하다": {example:"자연재해에 대비한 준비가 필요하다.（需要防范自然灾害的准备）", syn:"준비하다(准备) vs 대처하다(应对)", ant:"소홀히 하다", cognate:"대비[名], 대비책[名]", hanja:"對備", realExam:""}
+,
+  "동조": {example:"대세에 동조하는 경향이 있다.（有随大流的倾向）", syn:"동의(同意) vs 추종(追随)", ant:"반대, 반발", cognate:"동조하다, 동조적[形]", hanja:"同調", realExam:""}
+,
+  "막상": {example:"막상 해 보니 생각보다 어렵다.（实际做起来比想象中难）", syn:"실제로(实际上) vs 정작(真正)", ant:"", cognate:"", hanja:"(固有词)", realExam:""}
+,
+  "만들다": {example:"새로운 제품을 만들었다.（制作了新产品）", syn:"제작하다(制作) vs 창조하다(创造)", ant:"부수다, 파괴하다", cognate:"만들어지다[被动]", hanja:"(固有词)", realExam:""}
+,
+  "매출": {example:"올해 매출이 작년보다 늘었다.（今年销售额比去年增长了）", syn:"판매(销售) vs 수익(收益)", ant:"적자", cognate:"매출액[名], 매출이 오르다", hanja:"賣出", realExam:""}
+,
+  "사기": {example:"사기 피해를 주의해야 한다.（需警惕诈骗受害）", syn:"속임수(骗术) vs 사기행위(欺诈行为)", ant:"정직, 신용", cognate:"사기꾼[名], 사기하다", hanja:"詐欺", realExam:""}
+,
+  "상징하다": {example:"그 건물은 도시의 발전을 상징한다.（那座建筑象征着城市发展）", syn:"의미하다(意味着) vs 대표하다(代表)", ant:"", cognate:"상징[名], 상징적[形]", hanja:"象徵", realExam:""}
+,
+  "제안하다": {example:"새로운 방안을 제안했다.（提出了新方案）", syn:"제시하다(提出) vs 건의하다(建议)", ant:"철회하다", cognate:"제안[名], 제안서[名]", hanja:"提案", realExam:""}
+,
+  "지적": {example:"문제점을 지적했다.（指出了问题点）", syn:"지적하다(指出) vs 비판(批判)", ant:"칭찬, 인정", cognate:"지적하다, 지적받다", hanja:"指摘", realExam:""}
+,
+  "차선": {example:"차선을 변경하다.（变更车道）", syn:"차로(车道)", ant:"", cognate:"", hanja:"車線", realExam:""}
+,
+  "찬반": {example:"찬반 의견이 엇갈리고 있다.（赞成反对意见分歧）", syn:"찬성(赞成) vs 반대(反对)", ant:"(含反义)", cognate:"찬반 논쟁", hanja:"贊反", realExam:""}
+,
+  "혁신": {example:"기술 혁신이 경제를 이끈다.（技术创新引领经济）", syn:"혁신(革新) vs 개혁(改革)", ant:"보수, 침체", cognate:"혁신하다, 혁신적[形]", hanja:"革新", realExam:""}
 };
 
 // ================= 数据模型 =================
@@ -688,6 +732,7 @@ function buildWord(w,i){
     syn: DETAILS[ko]?DETAILS[ko].syn:"",           // 近义词辨析
     ant: DETAILS[ko]?DETAILS[ko].ant:"",           // 反义词
     cognate: DETAILS[ko]?DETAILS[ko].cognate:"",   // 同源词
+    hanja: DETAILS[ko]?DETAILS[ko].hanja:"",       // 汉字词源，如 요청=要請
     realExam: DETAILS[ko]?DETAILS[ko].realExam:"", // 真题例句
     learned: null,       // 学习日期 YYYY-MM-DD
     curve: {},           // {stage: timestamp} 已完成轮次的日期
@@ -989,7 +1034,12 @@ function importWords(){
     const exists=data.words.find(x=>x.ko===ko);
     if(exists){ skipped.push(ko); return; }
     // 仅真正的新词才导入
-    const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",realExam:"",learned:today(),curve:{R1:Date.now()},right:0,wrong:0,status:"failed"};
+    const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",hanja:"",realExam:"",learned:today(),curve:{R1:Date.now()},right:0,wrong:0,status:"failed"};
+    // 汉字词源：如 "要請" 或 "要請 + 하다" 或 "无"
+    const hanjaRaw=g("汉字词源");
+    if(hanjaRaw&&!hanjaRaw.includes("无")){
+      w.hanja=hanjaRaw.replace(/\s*\+\s*/g,"+").trim();
+    }
     // 实际发音：如 "법칙→[법치기]" 或 "[법치기]" 或 "无"
     const pronRaw=g("实际发音");
     if(pronRaw&&!pronRaw.includes("无")){
@@ -1249,6 +1299,10 @@ function showFeedback(w,user,ok){
   html+=`<div class="extra" style="margin-top:12px;border-top:2px solid var(--border);padding-top:12px;"><b>📖 完整学习资料（${w.ko}）</b></div>`;
   // 基本信息（即使无 DETAILS 也有内容）
   if(w.pos) html+=`<div class="extra" style="margin-top:6px;"><b>📌 词性：</b>${w.pos}${w.zh?` · ${w.zh}`:""}</div>`;
+  // 汉字词源（汉字词才显示）
+  if(w.hanja&&!w.hanja.includes("固有")){
+    html+=`<div class="extra" style="margin-top:6px;"><b>🀄 汉字词源：</b>${w.hanja}</div>`;
+  }
   // 实际发音
   if(w.pron){
     html+=`<div class="extra" style="margin-top:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);font-size:1.05rem;">${w.pron}</span></div>`;
@@ -1593,6 +1647,7 @@ function showWordDetail(ko){
     <div style="font-size:1.25rem;font-weight:800;">${w.ko} <span style="font-size:.9rem;color:var(--text-2);font-weight:500;">${w.zh}</span></div>
     <button onclick="closeWordDetail()" style="border:none;background:none;font-size:1.2rem;cursor:pointer;color:var(--text-2);">✕</button>
   </div>`;
+  if(w.hanja&&!w.hanja.includes("固有")) html+=`<div style="margin-bottom:6px;"><b>🀄 汉字词源：</b>${w.hanja}</div>`;
   if(w.pron) html+=`<div style="margin-bottom:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);font-size:1.05rem;">${w.pron}</span></div>`;
   if(w.example) html+=`<div style="margin-bottom:6px;"><b>📝 例句：</b>${w.example}</div>`;
   if(w.colloc&&w.colloc.length) html+=`<div style="margin-bottom:6px;"><b>📎 搭配：</b>${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
