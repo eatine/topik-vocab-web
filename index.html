@@ -1030,9 +1030,43 @@ function importWords(){
     const gMulti=(label)=>{ const m=block.match(new RegExp(label+"[:：]\\s*([\\s\\S]*?)(?=\\n\\s*(?:词条|汉字词源|含义|词性|等级|活用|例句|搭配|近义词|反义词|同源词|听力|敬语|真题|写作|大作文)[:：]|$)","i")); return m?m[1].trim():""; };
     const ko=g("词条");
     if(!ko) return;
-    // 查重：已在词库中（含内置词库与历史导入）→ 跳过并记录，不执行导入
+    // 查重
     const exists=data.words.find(x=>x.ko===ko);
-    if(exists){ skipped.push(ko); return; }
+    if(exists){
+      // 已存在：补充空字段 + 覆盖核心字段（用户主动重查就是想修正错误）
+      let updated = false;
+      // 核心字段（含义/词性/汉字词源）用户主动重查应该覆盖
+      const newZh=g("含义"); if(newZh){ exists.zh=newZh; updated=true; }
+      const newPos=g("词性"); if(newPos){ exists.pos=newPos; updated=true; }
+      const newHanja=hanjaRaw&&!hanjaRaw.includes("无")?hanjaRaw.replace(/\s*\+\s*/g,"+").trim():"";
+      if(newHanja){ exists.hanja=newHanja; updated=true; }
+      // 实际发音只能补充空字段
+      const pronRawLocal=g("实际发音");
+      if(pronRawLocal&&!pronRawLocal.includes("无")&&!exists.pron){
+        const pm=pronRawLocal.match(/\[[^\]]+\]/);
+        exists.pron=pm?pm[0]:(pronRawLocal.includes("→")?pronRawLocal.split("→")[1].trim():pronRawLocal);
+        updated=true;
+      }
+      // 扩展字段（搭配/例句/近义/反义/同源/真题）空字段才补充
+      const collocRaw=gMulti("搭配");
+      const exampleRaw=gMulti("例句");
+      const synRaw=gMulti("近义词");
+      const antRaw=g("反义词");
+      const cognateRaw=g("同源词");
+      const realExamRaw=gMulti("真题例句");
+      if(!exists.colloc||!exists.colloc.length){
+        if(collocRaw){ exists.colloc=collocRaw.split(/[|｜]/).map(s=>s.trim()).filter(s=>s).slice(0,6); updated=true; }
+      }
+      const fillIfEmpty=(field, val)=>{ if(val&&!exists[field]){ exists[field]=val; updated=true; } };
+      fillIfEmpty("example", exampleRaw);
+      fillIfEmpty("syn", synRaw);
+      fillIfEmpty("ant", antRaw);
+      fillIfEmpty("cognate", cognateRaw);
+      fillIfEmpty("realExam", realExamRaw);
+      if(updated) saveData();
+      skipped.push(ko);
+      return;
+    }
     // 仅真正的新词才导入
     const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",hanja:"",realExam:"",learned:today(),curve:{R1:Date.now()},right:0,wrong:0,status:"failed"};
     // 汉字词源：如 "要請" 或 "要請 + 하다" 或 "无"
@@ -1064,11 +1098,11 @@ function importWords(){
   saveData(); updateStats();
   document.getElementById("lk-import").value="";
   if(imported>0&&skipped.length>0){
-    alert(`✅ 已导入 ${imported} 个新词到词库，并进入复习队列！\nℹ️ ${skipped.length} 个词已在词库中，未重复导入：${skipped.join("、")}`);
+    alert(`✅ 已导入 ${imported} 个新词！\nℹ️ ${skipped.length} 个词已在词库中（已补充空字段/修正核心字段）：${skipped.join("、")}`);
   } else if(imported>0){
     alert(`✅ 已导入 ${imported} 个新词到词库，并进入复习队列！`);
   } else if(skipped.length>0){
-    alert(`ℹ️ 这些词已在词库中（无需重复导入）：${skipped.join("、")}`);
+    alert(`ℹ️ ${skipped.length} 个词已在词库中（已补充空字段/修正核心字段）：${skipped.join("、")}`);
   } else alert("⚠️ 未解析到词条，请检查格式（需包含「词条：」标签）");
 }
 
