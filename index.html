@@ -178,6 +178,11 @@
     <p style="margin-bottom:8px;">按「标签：内容」格式粘贴（AI 会按模板输出），导入后自动加入词库和复习队列。</p>
     <textarea id="lk-import" placeholder="词条：요청하다&#10;汉字词源：要請 + 하다&#10;含义：[动]请求，要求&#10;词性：动词（他动词）&#10;等级：3-4급&#10;活用：요청해요 / 요청한&#10;例句：고객이 추가 서비스를 요청했다.&#10;搭配：도움을 요청하다 | 지원을 요청하다 | 협조를 요청하다&#10;近义词：부탁하다(口语) | 신청하다(申请) | 요구하다(强硬)&#10;反义词：거절하다 | 거부하다&#10;同源词：요청[名] | 요청서[名] | 요청되다[被动]&#10;听力场景：客服对话 / 商务邮件&#10;敬语：요청드리다&#10;真题例句：고객이 추가 서비스를 요청했으나…（52회 듣기 12번）&#10;写作词：是&#10;大作文句式：[정책]이/가 국민을 납득시키기 위해서는 [조건]이 필요하다."></textarea>
     <button class="btn green" style="margin-top:10px;width:100%;" onclick="importWords()">📥 导入词库</button>
+    <button class="btn ghost" style="margin-top:8px;width:100%;" onclick="exportMissingZh()">📤 导出暂无释义词（查词补充用）</button>
+    <div id="missing-zh-box" class="hidden" style="margin-top:10px;">
+      <div id="missing-zh-text" style="background:var(--accent-light);border-radius:8px;padding:10px;font-size:.85rem;white-space:pre-wrap;"></div>
+      <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="copyText('missing-zh-text')">📎 复制词列表</button>
+    </div>
   </div>
 </div>
 
@@ -1409,6 +1414,21 @@ function importWords(){
   } else if(skipped.length>0){
     alert(`ℹ️ ${skipped.length} 个词已在词库中（已补充空字段/修正核心字段）：${skipped.join("、")}`);
   } else alert("⚠️ 未解析到词条，请检查格式（需包含「词条：」标签）");
+}
+// 导出所有暂无释义（zh 为空）的词，方便重新查词补充
+function exportMissingZh(){
+  const missing=data.words.filter(w=>!w.zh||w.zh.trim()==="");
+  const box=document.getElementById("missing-zh-box");
+  const txt=document.getElementById("missing-zh-text");
+  if(!missing.length){
+    txt.textContent="✅ 词库中所有词都有释义，无需补充！";
+  } else {
+    // 按词库顺序输出，逗号分隔方便复制到查词输入框
+    txt.textContent=missing.map(w=>w.ko).join(", ");
+    txt.textContent+="\n\n共 "+missing.length+" 个词暂无释义。\n复制到上方「查词」输入框 → 生成分析 → 粘贴导入（会自动补充释义）。";
+  }
+  box.classList.remove("hidden");
+  box.scrollIntoView({behavior:"smooth"});
 }
 
 // ================= 测试 =================
