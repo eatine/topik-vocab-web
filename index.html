@@ -962,6 +962,20 @@ if (!data || !data.words || !data.words.length) {
     }
     // 活用型补全（CONJ 数据）
     if((!w.conj || !w.conj.length) && CONJ[w.ko] && CONJ[w.ko].length){ w.conj = CONJ[w.ko]; migrated = true; }
+    // 数据修复：清理 learned 异常的词（避免"未学就推到 D60"）
+    // 异常判定：learned 距今 > 90 天 且 right<3 且未完成所有曲线
+    if(w.learned){
+      const daysSince=(Date.now() - new Date(w.learned).getTime())/(1000*60*60*24);
+      const done=CURVE_STAGES.filter(s=>w.curve[s]).length;
+      if(daysSince>90 && (w.right||0)<3 && done<CURVE_STAGES.length){
+        w.learned=null;
+        w.curve={};
+        w.right=0;
+        w.wrong=0;
+        w.status="untested";
+        migrated = true;
+      }
+    }
   });
   if(merged.length || migrated){
     data.words = data.words.concat(merged);
@@ -1278,8 +1292,9 @@ function importWords(){
       skipped.push(ko);
       return;
     }
-    // 仅真正的新词才导入
-    const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",hanja:"",realExam:"",conj:[],learned:today(),curve:{R1:Date.now()},right:0,wrong:0,status:"failed"};
+    // 仅真正的新词才导入（核心修复：learned 设为 null，曲线 R1 不预先标记）
+    // 第一次答对时才设 learned=today()，避免"未学就推 D60"的假学习状态
+    const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",hanja:"",realExam:"",conj:[],learned:null,curve:{},right:0,wrong:0,status:"untested"};
     if(hanjaRaw&&!hanjaRaw.includes("无")){
       w.hanja=hanjaRaw.replace(/\s*\+\s*/g,"+").trim();
     }
@@ -1361,8 +1376,10 @@ function dueWords(){
   const t=today();
   return data.words.filter(w=>{
     if(!w.learned) return false;
+    // 核心修复：必须真正答对过（right>=1）才算"学过"，否则不应进入到期列表
+    // 否则会出现"刚导入就推 R1→D60"的假学习状态
+    if((w.right||0)<1) return false;
     // 已掌握的词**仍按曲线到期的长间隔复习**（D30/D60），避免记忆淡化
-    // 不再排除 mastered —— 艾宾浩斯要求长期巩固
     // 未完成所有轮次
     const done=CURVE_STAGES.filter(s=>w.curve[s]);
     if(done.length>=CURVE_STAGES.length) return false;
@@ -1376,6 +1393,42 @@ function dueWords(){
     }
     return false;
   });
+}
+
+// 诊断异常 learned（值早于 today() 90 天以上，或过于"久远"）
+function diagnoseAnomalies(){
+  const t=today();
+  const issues=[];
+  data.words.forEach(w=>{
+    if(!w.learned) return;
+    // 如果 learned 距今超过 90 天，且 right<3（基本没真正巩固），视为异常
+    const learnedDate=new Date(w.learned);
+    const daysSince=(new Date(t)-learnedDate)/(1000*60*60*24);
+    const mastered=Object.keys(w.curve||{}).length>=CURVE_STAGES.length;
+    if(daysSince>90 && !mastered && w.right<3){
+      issues.push({w, daysSince:Math.floor(daysSince)});
+    }
+  });
+  return issues;
+}
+
+// 一键重置异常进度：把 learned 异常的词清空 learned+curve，状态回 untested
+function resetAnomalousProgress(){
+  const issues=diagnoseAnomalies();
+  if(!issues.length){
+    alert("✅ 没有发现异常 learned 数据，无需修复。");
+    return;
+  }
+  if(!confirm(`发现 ${issues.length} 个词的 learned 数据异常（设置日期过早、进度停滞）。\n\n重置会清空这些词的：\n• learned 日期\n• 曲线进度（curve）\n• right/wrong 计数\n• 状态回 untested\n\n你的总进度不受影响，只是让这些词回到"未测过"状态，从你下次答对开始重新计时。\n\n确定要重置这 ${issues.length} 个词吗？`)) return;
+  issues.forEach(({w})=>{
+    w.learned=null;
+    w.curve={};
+    w.right=0;
+    w.wrong=0;
+    w.status="untested";
+  });
+  saveData(); updateStats(); renderReview();
+  alert(`✅ 已重置 ${issues.length} 个词的异常进度。\n\n这些词现在标记为"未测过"，不会出现在到期列表里。下次你真正答对它们时，会从 R1 开始重新计时。`);
 }
 
 function startQuiz(){
@@ -1666,7 +1719,7 @@ function finishWord(w,ok,mode){
   // 更新记忆状态
   if(ok){
     w.right++;
-    // 推进到下一轮次
+    // 核心修复：第一次真正答对时设置 learned = today（之前是导入时就设置，导致"未学就推曲线"）
     if(!w.learned) { w.learned=today(); }
     let stageIdx=CURVE_STAGES.findIndex(s=>!w.curve[s]);
     if(stageIdx===-1) stageIdx=CURVE_STAGES.length-1;
@@ -1683,11 +1736,13 @@ function finishWord(w,ok,mode){
     }
   } else {
     w.wrong++;
-    // 重置曲线到 R1
-    w.curve={};
-    w.curve.R1=Date.now();
-    if(!w.learned) w.learned=today();
-    w.status="failed"; // 答错（无论哪种模式）都视为未掌握
+    // 重置曲线到 R1（仅当之前学过时）
+    if(w.learned){
+      w.curve={};
+      w.curve.R1=Date.now();
+      w.learned=today();  // 重置 learned 也从今天开始
+    }
+    w.status="failed";
   }
   saveData();
   // debug :=
@@ -1742,6 +1797,15 @@ function renderReview(){
   let html=`<div style="font-size:.85rem;color:var(--text-2);margin-bottom:8px;">📋 今日复习任务 | ${t}</div>`;
   html+=`<div style="background:var(--accent-light);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.84rem;">🚀 快轨：还有 <b style="color:var(--accent);">${untestedCount}</b> 个新词未测（R1⏳）→ 建议优先推进快轨，再做深轨巩固</div>`;
   html+=`<div style="background:#fff9e6;border-left:3px solid var(--orange);border-radius:0 6px 6px 0;padding:6px 10px;margin-bottom:8px;font-size:.78rem;color:#7d5a00;">💡 艾宾浩斯曲线意图：已掌握词也会按 D30/D60 长间隔出现一次，让记忆长期巩固——不是逃避重复。</div>`;
+  // 数据健康检查
+  const anomalies=diagnoseAnomalies();
+  if(anomalies.length){
+    html+=`<div style="background:#fdecec;border-left:3px solid var(--red);border-radius:0 6px 6px 0;padding:8px 10px;margin-bottom:10px;font-size:.84rem;">
+      ⚠️ 检测到 <b style="color:var(--red);">${anomalies.length}</b> 个词的 learned 日期异常（设置日期过早、进度停滞）。<br>
+      这些词可能因为旧数据/PWA 缓存导致"未学就推到 D60"，影响复习准确性。<br>
+      <button class="btn" style="margin-top:6px;font-size:.82rem;padding:6px 14px;background:var(--red);" onclick="resetAnomalousProgress()">🔧 一键修复异常进度</button>
+    </div>`;
+  }
 
   if(red.length){
     html+=`<div style="font-size:.85rem;color:var(--red);font-weight:700;margin:8px 0 4px;">🔴 优先（未通过，需巩固）：${red.length} 词</div>`;
