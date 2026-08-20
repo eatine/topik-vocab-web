@@ -935,6 +935,15 @@ function buildWord(w,i){
     status: "untested"   // mastered | failed | untested
   };
 }
+// 词义数据源：供迁移补全空 zh 使用（从 BASE_WORDS 提取）
+const DATA_SOURCE={};
+BASE_WORDS.forEach(w=>{
+  DATA_SOURCE[w[0]]={zh:w[1]||"", pos:w[2]||"", hanja:w[3]||""};
+});
+// 用户补充资料的词也纳入（其 zh 来自 BASE_WORDS 同名词）
+Object.keys(DETAILS_EXTRA).forEach(ko=>{
+  if(!DATA_SOURCE[ko]) DATA_SOURCE[ko]={zh:"",pos:"",hanja:""};
+});
 if (!data || !data.words || !data.words.length) {
   // 初始化内置词库
   data = { words: BASE_WORDS.map(buildWord), meta: { created: today() } };
@@ -991,6 +1000,12 @@ if (!data || !data.words || !data.words.length) {
       w.learned=null;
       w.curve={};
       migrated = true;
+    }
+    // 修复 v19：zh（中文释义）为空的词，从 BASE_WORDS/EXTRA 补全
+    if(!w.zh){
+      const src=DATA_SOURCE[w.ko];
+      if(src && src.zh){ w.zh=src.zh; migrated=true; }
+      else if(src && src.zhFromBase){ w.zh=src.zhFromBase; migrated=true; }
     }
     // 修复 v13 误生成的"未来时间戳"假进度：
     // 删除 mastered 词中时间戳 > 现在 的曲线阶段（这些是预填的未来日期，不是真实完成）
@@ -1197,7 +1212,8 @@ function editDist(a,b){
 }
 function fuzzyMatch(user,target){
   const u=norm(user),t=norm(target);
-  if(!u) return false;
+  // 关键修复：目标为空时绝不判对（否则空释义会让任意输入都正确）
+  if(!u || !t) return false;
   if(t.includes(u)||u.includes(t)) return true;
   const parts=t.split(/[，,、；;/]/).filter(s=>s.length>=2);
   for(const p of parts) if(u.includes(p)||p.includes(u)) return true;
@@ -1683,9 +1699,9 @@ function showFeedbackColloc(w,user,ok){
 function showFeedback(w,user,ok){
   window._lastFeedbackWord=w;
   const fb=document.getElementById("q-feedback");
-  const target = currentMode==="k2c" ? w.zh : w.ko;
+  const target = currentMode==="k2c" ? (w.zh||"（词库暂无释义，请用查词补充）") : w.ko;
   let html=`<div class="ans">${ok?"✅ 正确！":"❌ 答错了"}</div>`;
-  html+=`<div style="margin-top:4px;">正确答案：<b>${target}</b>${currentMode==="c2k"&&ok?"":""}${currentMode==="c2k"&&!ok?`（${w.zh}）`:""}</div>`;
+  html+=`<div style="margin-top:4px;">正确答案：<b>${target}</b>${currentMode==="c2k"&&ok?"":""}${currentMode==="c2k"&&!ok?`（${w.zh||"暂无释义"}）`:""}</div>`;
   if(!ok) html+=`<div>你的答案：${user||"（未作答）"}</div>`;
 
   // ===== 完整学习卡片：无论对错都展示 ======
