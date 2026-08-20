@@ -1,15 +1,14 @@
-// Service Worker：TOPIK 词汇系统 v5
-// 核心修复：HTML 永远从网络拉取（绕过所有缓存），其他资源用缓存兜底
-// 这样 PWA 桌面 app 无论旧版本多陈旧，打开主页永远拿到 GitHub 最新版本
-const CACHE_NAME = 'topik-vocab-v5';
+// Service Worker：TOPIK 词汇系统 v6
+// 关键增强：激活时强制刷新所有客户端，确保 v15+ 的 dueWords 修正生效
+// 这解决"用户刷新页面但 SW 还跑老 HTML"的难题
+const CACHE_NAME = 'topik-vocab-v6';
 const ASSETS = [
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png'
-  // 注意：index.html 不放入缓存，因为 HTML 永远从网络获取
 ];
 
-// 安装：立即激活（不等旧的标签页关闭）
+// 安装：立即激活
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -17,12 +16,19 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 激活：清理所有旧缓存 + 立即控制所有客户端
+// 激活：清理所有旧缓存 + 强制刷新所有打开的标签页/PWA
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+      // 立即控制所有客户端
       .then(() => self.clients.claim())
+      // 强制让所有打开此 PWA 的客户端立即重新加载（确保看到新 HTML）
+      .then(() => self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          try { client.navigate(client.url); } catch(e) {}
+        });
+      }))
   );
 });
 
@@ -37,7 +43,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' })
         .then((response) => {
-          // 成功：直接返回网络最新版（不缓存 HTML）
+          // 成功：直接返回网络最新版
           return response;
         })
         .catch(() => {
@@ -70,7 +76,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       }).catch(() => {
-        // 离线回退
         if (event.request.mode === 'navigate') return caches.match('./index.html');
       });
     })
