@@ -982,27 +982,31 @@ if (!data || !data.words || !data.words.length) {
       w.status="failed";
       migrated = true;
     }
-    // 关键修复：mastered 词的曲线阶段按真实遗忘区间填充
-    // mastered 后短期复习没意义（已掌握），下次至少 30 天后（D30）才需要再出现
-    // 避免 mastered 词每天都进到期列表（用户反馈的核心 bug）
-    if(w.status==="mastered" && w.learned){
-      let needsFix = false;
-      for(let i=0;i<CURVE_STAGES.length;i++){
-        if(!w.curve[CURVE_STAGES[i]]){
-          // 真实到期日（learned + 偏移天数）
-          const realDueMs=new Date(addDays(w.learned,CURVE_OFFSETS[i])).getTime();
-          // mastered 词的最低到期日：D1-D15 至少 learned+15 天后；D30/D60 用真实日期
-          let minDueMs;
-          if(i<=5){ // R1/R2/R3/D1/D2/D4 用 15 天延迟
-            minDueMs = new Date(w.learned).getTime() + 15*24*60*60*1000;
-          } else { // D7/D15/D30/D60 用真实偏移（D30=30天后,D60=60天后）
-            minDueMs = realDueMs;
-          }
-          w.curve[CURVE_STAGES[i]] = Math.max(realDueMs, minDueMs);
-          needsFix = true;
+    // 修复 v13 误生成的"未来时间戳"假进度：
+    // 删除 mastered 词中时间戳 > 现在 的曲线阶段（这些是预填的未来日期，不是真实完成）
+    // 真实完成的时间戳必然 <= 当前时间；未来时间戳 = 假进度（日志显示 D60✅ 但实际没复习）
+    if(w.curve){
+      const nowMs=Date.now();
+      let fixedFuture=false;
+      CURVE_STAGES.forEach(s=>{
+        if(w.curve[s] && w.curve[s] > nowMs){
+          delete w.curve[s];
+          fixedFuture=true;
         }
-      }
-      if(needsFix) migrated = true;
+      });
+      if(fixedFuture) migrated=true;
+    }
+    // 确保 mastered 词只保留"已完成"的真实阶段（D30/D60 未完成则留空，到期时再出现）
+    if(w.status==="mastered" && w.learned){
+      // D1-D15 对 mastered 无意义：如果没真实完成（时间戳<=now 才算完成），删掉
+      let needsFix=false;
+      ["D1","D2","D4","D7","D15"].forEach(s=>{
+        if(w.curve[s] && w.curve[s] <= Date.now()){
+          // 真实完成了 D1-D15？对 mastered 词来说这些已完成是正常的（学习过程中答对过）
+          // 保留（它们真实发生过）
+        }
+      });
+      // 注意：这里不预填任何未来时间戳！D30/D60 保持空，等真实到期
     }
   });
   if(merged.length || migrated){
@@ -1405,9 +1409,16 @@ function dueWords(){
   return data.words.filter(w=>{
     if(!w.learned) return false;
     // 核心修复：必须真正答对过（right>=1）才算"学过"，否则不应进入到期列表
-    // 否则会出现"刚导入就推 R1→D60"的假学习状态
     if((w.right||0)<1) return false;
-    // 已掌握的词**仍按曲线到期的长间隔复习**（D30/D60），避免记忆淡化
+    // 已掌握的词：只按 D30/D60 长间隔到期（跳过 D1-D15，已掌握不需要短期复习）
+    if(w.status==="mastered"){
+      // 已完成所有阶段 → 永不出现
+      if(CURVE_STAGES.every(s=>w.curve[s])) return false;
+      // 找 D30 和 D60：只检查这两个长间隔
+      if(!w.curve["D30"]) return addDays(w.learned,30)<=t;
+      if(!w.curve["D60"]) return addDays(w.learned,60)<=t;
+      return false;
+    }
     // 未完成所有轮次
     const done=CURVE_STAGES.filter(s=>w.curve[s]);
     if(done.length>=CURVE_STAGES.length) return false;
@@ -1503,6 +1514,12 @@ function dueOverdueMs(w){
   const t=today();
   if(!w.learned) return -Infinity;
   if((w.right||0)<1) return -Infinity;
+  // mastered 词：只按 D30/D60 计算
+  if(w.status==="mastered"){
+    if(!w.curve["D30"]) return (new Date(t)-new Date(addDays(w.learned,30)))/(1000*60*60*24);
+    if(!w.curve["D60"]) return (new Date(t)-new Date(addDays(w.learned,60)))/(1000*60*60*24);
+    return -Infinity;
+  }
   for(let i=0;i<CURVE_STAGES.length;i++){
     const stage=CURVE_STAGES[i];
     if(!w.curve[stage]){
