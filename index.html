@@ -976,6 +976,12 @@ if (!data || !data.words || !data.words.length) {
         migrated = true;
       }
     }
+    // 关键迁移：已答对过（right>=1）但状态仍是 untested 的词 → 改为 failed
+    // 修复"答对 1 次仍留快轨 → 反复推送同一词"的 bug
+    if(w.status==="untested" && (w.right||0)>=1){
+      w.status="failed";
+      migrated = true;
+    }
   });
   if(merged.length || migrated){
     data.words = data.words.concat(merged);
@@ -1443,28 +1449,47 @@ function startQuiz(){
   renderQuestion();
 }
 function startDueQuiz(){
-  // 双轨制：快轨（未测新词）优先，然后深轨（到期词按优先级）
-  const fastTrack=data.words.filter(w=>w.status==="untested");
-  const due=dueWords().sort((a,b)=>priorityOf(a)-priorityOf(b));
+  // 双轨制修复：快轨（未测新词）和深轨（到期词）各取一部分，交错混合，避免某个词被反复推送
+  // 关键：快轨 shuffle 随机取，深轨按"已过期时长"优先（最早该复习的先复习）
+  const fastTrack=shuffle(data.words.filter(w=>w.status==="untested"));
+  const due=dueWords().sort((a,b)=>dueOverdueMs(b)-dueOverdueMs(a)); // 过期最久的优先
   if(!fastTrack.length&&!due.length){ alert("今日没有到期词，也没有未测新词 🎉"); return; }
-  // 组装队列：先未测新词（快轨），再到期的深轨词；各取一半
+  // 组装队列：快轨取10个（shuffle后），深轨取10个（按过期时长），交错排列
+  const fastBatch=fastTrack.slice(0,10);
+  const dueBatch=due.slice(0,10);
   let queue=[];
-  if(fastTrack.length){
-    queue=queue.concat(fastTrack.slice(0,15));
-  }
-  if(due.length){
-    queue=queue.concat(due.slice(0,15));
+  // 交错合并：快轨1个+深轨1个交替，确保两类词都覆盖且分布均匀
+  const maxLen=Math.max(fastBatch.length,dueBatch.length);
+  for(let i=0;i<maxLen;i++){
+    if(i<fastBatch.length) queue.push(fastBatch[i]);
+    if(i<dueBatch.length) queue.push(dueBatch[i]);
   }
   selRange="due";
   document.querySelectorAll("#range-opts .opt").forEach(o=>o.classList.remove("sel"));
   document.querySelectorAll("#range-opts .opt").forEach(o=>{ if(o.dataset.range==="due") o.classList.add("sel"); });
-  quizQueue=shuffle(queue).slice(0,30);
+  quizQueue=shuffle(queue).slice(0,20);
   quizIndex=0; quizScore=0; quizResults=[];
   document.getElementById("quiz-card").classList.remove("hidden");
   document.getElementById("result-card").classList.add("hidden");
   showPanel("test");
   document.getElementById("quiz-card").scrollIntoView({behavior:"smooth"});
   renderQuestion();
+}
+
+// 计算词已过期多久（毫秒）：找下一个未完成阶段，若已到期返回过期时长；未到期返回负值
+function dueOverdueMs(w){
+  const t=today();
+  if(!w.learned) return -Infinity;
+  if((w.right||0)<1) return -Infinity;
+  for(let i=0;i<CURVE_STAGES.length;i++){
+    const stage=CURVE_STAGES[i];
+    if(!w.curve[stage]){
+      const due=addDays(w.learned,CURVE_OFFSETS[i]);
+      const ms=(new Date(t)-new Date(due))/(1000*60*60*24);
+      return ms; // 正数=已过期天数，负数=还有几天到期
+    }
+  }
+  return -Infinity;
 }
 
 function renderQuestion(){
@@ -1727,12 +1752,15 @@ function finishWord(w,ok,mode){
     if(mode==="recall"){
       // 回忆型才可判定"掌握"：答对≥2次且多于答错
       if(w.right>=2 && w.right>w.wrong) w.status="mastered";
-      else if(w.wrong>0) w.status="failed";
-      // untested 答对 1 次保持 untested（不直接变 failed，更直觉）
-      else if(w.status==="untested") w.status="untested";
+      else {
+        // 关键修复：只要学过（答对过）就不再是"未测"——从快轨移出
+        // 状态设为 failed（进入深轨，按 D1/D2/D4…日期到期才再次出现）
+        // 这样新词答对 1 次后，快轨会推进到下一个新词，而不是反复推同一个
+        w.status="failed";
+      }
     } else {
-      // 再认型（四选一/搭配）答对：只推进快轨，不提升为掌握
-      if(w.status==="untested") w.status="untested";
+      // 再认型（四选一/搭配）答对：同样移出快轨，进入深轨按日期到期
+      w.status="failed";
     }
   } else {
     w.wrong++;
