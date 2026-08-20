@@ -984,6 +984,14 @@ if (!data || !data.words || !data.words.length) {
       w.status="failed";
       migrated = true;
     }
+    // 关键修复 v18：right=0 但 status 不是 untested 的词（说明之前版本没正确累加 right）
+    // 重置回 untested，让快轨重新推到 → 用户答对时正确累加
+    if((w.right||0)<1 && (w.status==="failed" || w.status==="mastered")){
+      w.status="untested";
+      w.learned=null;
+      w.curve={};
+      migrated = true;
+    }
     // 修复 v13 误生成的"未来时间戳"假进度：
     // 删除 mastered 词中时间戳 > 现在 的曲线阶段（这些是预填的未来日期，不是真实完成）
     // 真实完成的时间戳必然 <= 当前时间；未来时间戳 = 假进度（日志显示 D60✅ 但实际没复习）
@@ -2114,7 +2122,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v17");
+document.title = document.title.replace("TOPIK","TOPIK v18");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
