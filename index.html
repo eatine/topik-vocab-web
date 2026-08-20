@@ -1875,16 +1875,32 @@ function renderReview(){
   const untestedCount=fastTrack.length;
 
   // 诊断：统计有几个词 learned 是 Date 对象（不是字符串）— v17 addDays 已兼容
-  let strLearned=0, dateLearned=0;
+  let strLearned=0, dateLearned=0, noLearned=0, rightZero=0;
+  const sample=[];
   data.words.forEach(w=>{
-    if(!w.learned) return;
-    if(w.learned instanceof Date) dateLearned++;
-    else if(typeof w.learned==="string") strLearned++;
+    if(!w.learned){ noLearned++; return; }
+    if(w.learned instanceof Date){ dateLearned++; if(sample.length<3) sample.push(`${w.ko}: Date对象(${String(w.learned)})`); }
+    else if(typeof w.learned==="string"){ strLearned++; if(sample.length<3) sample.push(`${w.ko}: 字符串(${w.learned})`); }
+    if((w.right||0)<1) rightZero++;
   });
-  console.log(`[诊断] 词库: learned 字符串=${strLearned}, Date 对象=${dateLearned}, 今天=${t}`);
+  console.log(`[诊断] 词库: learned 字符串=${strLearned}, Date 对象=${dateLearned}, 无learned=${noLearned}, right<1=${rightZero}, 今天=${t}`);
 
   if(!due.length&&!untestedCount){
-    box.innerHTML=`<div class="empty-hint">🎉 今天没有到期的复习词！<br>可以学新词，或从「测试」面板选错词本巩固。</div>`;
+    // 显示诊断信息（可见，无需开发者工具）
+    const sampleHTML=sample.map(s=>`<div style="font-size:.78rem;">${s}</div>`).join("");
+    box.innerHTML=`
+      <div class="empty-hint">🎉 今天没有到期的复习词！<br>可以学新词，或从「测试」面板选错词本巩固。</div>
+      <div style="margin-top:14px;background:#f0f4ff;border:1px dashed var(--accent);border-radius:10px;padding:12px 14px;font-size:.82rem;">
+        <b>🔍 诊断信息（截图发我）：</b><br>
+        <div style="margin-top:6px;">今天：${t}<br>
+        learned 字符串：${strLearned} 个<br>
+        learned Date对象：${dateLearned} 个<br>
+        无 learned：${noLearned} 个<br>
+        right<1（未答对过）：${rightZero} 个<br>
+        总词数：${data.words.length}<br>
+        CURVE_OFFSETS：${CURVE_OFFSETS.join(",")}</div>
+        <div style="margin-top:6px;color:var(--text-2);">示例（前3个有learned的词）：${sampleHTML||"(无)"}</div>
+      </div>`;
     return;
   }
 
@@ -2097,6 +2113,8 @@ function closeWordDetail(){
 
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
+// 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
+document.title = document.title.replace("TOPIK","TOPIK v17");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
