@@ -797,6 +797,102 @@ const DETAILS_EXTRA = {
   "혁신": {hanja:"革新", example:"지속 가능한 발전을 위해 끊임없는 혁신이 필요하다.（可持续发展离不开持续革新。）", syn:"창조(创造) | 개혁(改革)", ant:"유지(维持) | 보수(保守)", cognate:"혁신적(创新性的) | 혁신하다(创新,动词)", pron:"[혁씬]", colloc:["기술 혁신","혁신을 이루다","혁신적인 제품","혁신을 추진하다","혁신 정신"], essay:["[지속 가능한 발전을 위해서는 끊임없는 혁신이 필요하다]（可持续发展离不开持续革新）"], essayFreq:true},
 };
 
+// 非 -하다 动词/形容词的活用型（해요体/过去式/冠形词）——听力听写识别用
+const CONJ = {
+  "가리키다": ["가리켜요","가리켰어요","가리키는"],
+  "걸다": ["걸어요","걸었어요","거는"],
+  "검증되다": ["검증돼요","검증됐어요","검증된"],
+  "깨닫다": ["깨달아요","깨달았어요","깨닫는"],
+  "끼치다": ["끼쳐요","끼쳤어요","끼치는"],
+  "나누다": ["나눠요","나눴어요","나누는"],
+  "날아가다": ["날아가요","날아갔어요","날아가는"],
+  "남다르다": ["남달라요","남달랐어요","남다른"],
+  "내놓다": ["내놔요","내놨어요","내놓는"],
+  "놓치다": ["놓쳐요","놓쳤어요","놓치는"],
+  "늘어나다": ["늘어나요","늘어났어요","늘어나는"],
+  "담다": ["담아요","담았어요","담는"],
+  "데리다": ["데려요","데렸어요","데리는"],
+  "데우다": ["데워요","데웠어요","데우는"],
+  "되찾다": ["되찾아요","되찾았어요","되찾는"],
+  "둔해지다": ["둔해져요","둔해졌어요","둔해진"],
+  "드러내다": ["드러내요","드러냈어요","드러내는"],
+  "따다": ["따요","땄어요","따는"],
+  "따지다": ["따져요","따졌어요","따지는"],
+  "떠오르다": ["떠올라요","떠올랐어요","떠오르는"],
+  "만들다": ["만들어요","만들었어요","만드는"],
+  "묻다": ["물어요","물었어요","묻는"],
+  "물려주다": ["물려줘요","물려줬어요","물려주는"],
+  "물리다": ["물려요","물렸어요","물리는"],
+  "미치다": ["미쳐요","미쳤어요","미치는"],
+  "밝히다": ["밝혀요","밝혔어요","밝히는"],
+  "버려지다": ["버려져요","버려졌어요","버려진"],
+  "벌이다": ["벌여요","벌였어요","벌이는"],
+  "보도되다": ["보도돼요","보도됐어요","보도된"],
+  "보이다": ["보여요","보였어요","보이는"],
+  "부각되다": ["부각돼요","부각됐어요","부각된"],
+  "붐비다": ["붐벼요","붐볐어요","붐비는"],
+  "붙잡다": ["붙잡아요","붙잡았어요","붙잡는"],
+  "빌리다": ["빌려요","빌렸어요","빌리는"],
+  "뿌리다": ["뿌려요","뿌렸어요","뿌리는"],
+  "사라지다": ["사라져요","사라졌어요","사라지는"],
+  "살리다": ["살려요","살렸어요","살리는"],
+  "상대적": ["상대적이다","상대적이었어요","상대적인"],
+  "세우다": ["세워요","세웠어요","세우는"],
+  "싣다": ["실어요","실었어요","싣는"],
+  "쏟다": ["쏟아요","쏟았어요","쏟는"],
+  "안타깝다": ["안타까워요","안타까웠어요","안타까운"],
+  "앞두다": ["앞둬요","앞뒀어요","앞두는"],
+  "얻다": ["얻어요","얻었어요","얻는"],
+  "없애다": ["없애요","없앴어요","없애는"],
+  "옮기다": ["옮겨요","옮겼어요","옮기는"],
+  "잃다": ["잃어요","잃었어요","잃는"],
+  "자라다": ["자라요","자랐어요","자라는"],
+  "쥐다": ["쥐어요","쥐었어요","쥐는"],
+  "지나다": ["지나요","지났어요","지나는"],
+  "지켜보다": ["지켜봐요","지켜봤어요","지켜보는"],
+  "직결되다": ["직결돼요","직결됐어요","직결된"],
+  "질적": ["질적이다","질적이었어요","질적인"],
+  "축소되다": ["축소돼요","축소됐어요","축소된"],
+  "커지다": ["커져요","커졌어요","커진"],
+  "키우다": ["키워요","키웠어요","키우는"],
+  "지다": ["져요","졌어요","지는"],
+  "거세다": ["거세요","거셌어요","거센"],
+  "거치다": ["거쳐요","거쳤어요","거치는"],
+  "겪다": ["겪어요","겪었어요","겪는"],
+  "나르다": ["날라요","날랐어요","나르는"],
+  "내세우다": ["내세워요","내세웠어요","내세우는"],
+  "넘나들다": ["넘나들어요","넘나들었어요","넘나드는"],
+  "눈부시다": ["눈부셔요","눈부셨어요","눈부신"],
+  "눈부신": ["눈부신","눈부셨던","눈부신"],
+  "달리다": ["달려요","달렸어요","달리는"],
+  "던지다": ["던져요","던졌어요","던지는"],
+  "두드리다": ["두드려요","두드렸어요","두드리는"],
+  "맡기다": ["맡겨요","맡겼어요","맡기는"],
+  "매달리다": ["매달려요","매달렸어요","매달리는"],
+  "명예롭다": ["명예로워요","명예로웠어요","명예로운"],
+  "모이다": ["모여요","모였어요","모이는"],
+  "받아들이다": ["받아들여요","받아들였어요","받아들이는"],
+  "벗어나다": ["벗어나요","벗어났어요","벗어나는"],
+  "별의별": ["별의별이다","별의별이었어요","별의별인"],
+  "빠져나가다": ["빠져나가요","빠져나갔어요","빠져나가는"],
+  "스며들다": ["스며들어요","스며들었어요","스며드는"],
+  "알맞다": ["알맞아요","알맞았어요","알맞은"],
+  "어김없다": ["어김없어요","어김없었어요","어김없는"],
+  "여기다": ["여겨요","여겼어요","여기는"],
+  "외치다": ["외쳐요","외쳤어요","외치는"],
+  "우선적": ["우선적이다","우선적이었어요","우선적인"],
+  "이끌다": ["이끌어요","이끌었어요","이끄는"],
+  "이어지다": ["이어져요","이어졌어요","이어진"],
+  "입증되다": ["입증돼요","입증됐어요","입증된"],
+  "즐기다": ["즐겨요","즐겼어요","즐기는"],
+  "지정되다": ["지정돼요","지정됐어요","지정된"],
+  "추진되다": ["추진돼요","추진됐어요","추진된"],
+  "풍요롭다": ["풍요로워요","풍요로웠어요","풍요로운"],
+  "해소시키다": ["해소시켜요","해소시켰어요","해소시키는"],
+  "휩쓸리다": ["휩쓸려요","휩쓸렸어요","휩쓸리는"],
+  "힘입다": ["힘입어요","힘입었어요","힘입은"],
+};
+
 // ================= 数据模型 =================
 const KEY = "topik_vocab_system_v2";
 const CURVE_STAGES = ["R1","R2","R3","D1","D2","D4","D7","D15","D30","D60"];
@@ -830,6 +926,7 @@ function buildWord(w,i){
     cognate: D.cognate || "",   // 同源词
     hanja: D.hanja || "",       // 汉字词源，如 요청=要請
     realExam: D.realExam || "", // 真题例句
+    conj: CONJ[ko] || [],       // 活用型 [해요体, 过去式, 冠形词] —— 非하다动词/形容词才有
     learned: null,       // 学习日期 YYYY-MM-DD
     curve: {},           // {stage: timestamp} 已完成轮次的日期
     right: 0, wrong: 0,
@@ -863,6 +960,8 @@ if (!data || !data.words || !data.words.length) {
       if(!w.cognate && D.cognate){ w.cognate = D.cognate; migrated = true; }
       if(!w.hanja && D.hanja){ w.hanja = D.hanja; migrated = true; }
     }
+    // 活用型补全（CONJ 数据）
+    if((!w.conj || !w.conj.length) && CONJ[w.ko] && CONJ[w.ko].length){ w.conj = CONJ[w.ko]; migrated = true; }
   });
   if(merged.length || migrated){
     data.words = data.words.concat(merged);
@@ -1180,7 +1279,7 @@ function importWords(){
       return;
     }
     // 仅真正的新词才导入
-    const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",hanja:"",realExam:"",learned:today(),curve:{R1:Date.now()},right:0,wrong:0,status:"failed"};
+    const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",hanja:"",realExam:"",conj:[],learned:today(),curve:{R1:Date.now()},right:0,wrong:0,status:"failed"};
     if(hanjaRaw&&!hanjaRaw.includes("无")){
       w.hanja=hanjaRaw.replace(/\s*\+\s*/g,"+").trim();
     }
@@ -1198,6 +1297,13 @@ function importWords(){
     w.ant=g("反义词")||"";
     w.cognate=g("同源词")||"";
     w.realExam=gMulti("真题例句")||"";
+    // 活用型：如 "현재: 진다 / 과거: 졌다 / 과거관형: 진" 或 "놓쳐요, 놓쳤어요, 놓치는"
+    const conjRaw=gMulti("活用");
+    if(conjRaw){
+      w.conj=conjRaw.split(/[\/|]/).map(s=>s.replace(/^(?:현재|과거|과거관형|관형|부사)[:：]\s*/,"").replace(/[()（）]/g,"").trim()).filter(s=>s).slice(0,3);
+    } else {
+      w.conj=[];
+    }
     const essayWord=g("写作词");
     const essayLine=gMulti("大作文句式");
     if(essayWord&&essayWord.includes("是")&&essayLine) w.essayFreq=true;
@@ -1446,6 +1552,11 @@ function showFeedback(w,user,ok){
   // 汉字词源（汉字词才显示）
   if(w.hanja&&!w.hanja.includes("固有")){
     html+=`<div class="extra" style="margin-top:6px;"><b>🀄 汉字词源：</b>${w.hanja}</div>`;
+  }
+  // 活用型（非하다动词/形容词）：해요体 / 过去式 / 冠形词
+  if(w.conj&&w.conj.length){
+    const labels=["해요体","过去式","冠形词"];
+    html+=`<div class="extra" style="margin-top:6px;"><b>🔤 活用型（一起记）：</b>${w.conj.map((c,i)=>`<span style="display:inline-block;margin:2px 6px 2px 0;padding:3px 10px;border-radius:12px;background:var(--teal-light);font-size:.85rem;">${labels[i]||""} ${c}</span>`).join("")}</div>`;
   }
   // 实际发音
   if(w.pron){
@@ -1792,6 +1903,11 @@ function showWordDetail(ko){
     <button onclick="closeWordDetail()" style="border:none;background:none;font-size:1.2rem;cursor:pointer;color:var(--text-2);">✕</button>
   </div>`;
   if(w.hanja&&!w.hanja.includes("固有")) html+=`<div style="margin-bottom:6px;"><b>🀄 汉字词源：</b>${w.hanja}</div>`;
+  // 活用型（非하다动词/形容词）：해요体 / 过去式 / 冠形词
+  if(w.conj&&w.conj.length){
+    const labels=["해요体","过去式","冠形词"];
+    html+=`<div style="margin-bottom:6px;"><b>🔤 活用型：</b>${w.conj.map((c,i)=>`<span style="display:inline-block;margin:2px 6px 2px 0;padding:3px 10px;border-radius:12px;background:var(--teal-light);font-size:.85rem;">${labels[i]||""} ${c}</span>`).join("")}</div>`;
+  }
   if(w.pron) html+=`<div style="margin-bottom:6px;"><b>🔊 实际发音：</b><span style="font-weight:800;color:var(--accent);font-size:1.05rem;">${w.pron}</span></div>`;
   if(w.example) html+=`<div style="margin-bottom:6px;"><b>📝 例句：</b>${w.example}</div>`;
   if(w.colloc&&w.colloc.length) html+=`<div style="margin-bottom:6px;"><b>📎 搭配：</b>${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
