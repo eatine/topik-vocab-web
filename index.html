@@ -896,7 +896,9 @@ const CONJ = {
 // ================= 数据模型 =================
 const KEY = "topik_vocab_system_v2";
 const CURVE_STAGES = ["R1","R2","R3","D1","D2","D4","D7","D15","D30","D60"];
-const CURVE_OFFSETS = [0,0,0,1,2,4,7,15,30,60]; // 距学习日的天数偏移
+// 距学习日的天数偏移：基于艾宾浩斯遗忘曲线（指数增长）
+// R1=5分钟, R2=1天, R3=2天, D1=4天, D2=7天, D4=15天, D7=30天, D15=60天, D30=90天, D60=180天
+const CURVE_OFFSETS = [5/60/24, 1, 2, 4, 7, 15, 30, 60, 90, 180];
 
 function loadData() {
   try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch(e){ return null; }
