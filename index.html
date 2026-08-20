@@ -1158,7 +1158,23 @@ function importBackup(){
 }
 
 function today(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
-function addDays(dateStr, n){ const d=new Date(dateStr+"T00:00:00"); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+// 关键修复：兼容 Date 对象和字符串两种类型
+// 之前用 "dateStr+T00:00:00" 拼接，Date 对象会被 toString() 转换造成 Invalid Date
+function addDays(dateInput, n){
+  let d;
+  if(dateInput instanceof Date){
+    d = new Date(dateInput.getTime()); // Date 对象 → 拷贝
+  } else if(typeof dateInput==="string" && dateInput.includes("T")){
+    // ISO 字符串（如 "2026-08-21T00:00:00.000Z"）直接 parse
+    d = new Date(dateInput);
+  } else {
+    // 纯日期字符串（如 "2026-08-21"）加 T00:00:00 防 UTC 漂移
+    d = new Date(dateInput + "T00:00:00");
+  }
+  if(isNaN(d.getTime())) return null; // 防御：日期无效返回 null
+  d.setDate(d.getDate()+n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
 
 // ================= 工具 =================
 function norm(s){ return String(s||"").replace(/\s+/g,"").toLowerCase(); }
@@ -1414,21 +1430,21 @@ function dueWords(){
     if((w.right||0)<1) return false;
     // 已掌握的词：只按 D30/D60 长间隔到期（跳过 D1-D15，已掌握不需要短期复习）
     if(w.status==="mastered"){
-      // 已完成所有阶段 → 永不出现
       if(CURVE_STAGES.every(s=>w.curve[s])) return false;
-      // 找 D30 和 D60：只检查这两个长间隔
-      if(!w.curve["D30"]) return addDays(w.learned,30)<=t;
-      if(!w.curve["D60"]) return addDays(w.learned,60)<=t;
+      const d30=addDays(w.learned,30);
+      const d60=addDays(w.learned,60);
+      if(!w.curve["D30"] && d30 && d30<=t) return true;
+      if(!w.curve["D60"] && d60 && d60<=t) return true;
       return false;
     }
-    // 未完成所有轮次
     const done=CURVE_STAGES.filter(s=>w.curve[s]);
     if(done.length>=CURVE_STAGES.length) return false;
-    // 找到下一个未完成轮次
     for(let i=0;i<CURVE_STAGES.length;i++){
       const stage=CURVE_STAGES[i];
       if(!w.curve[stage]){
         const due=addDays(w.learned,CURVE_OFFSETS[i]);
+        // 防御：addDays 返回 null（数据损坏）跳过
+        if(!due) return false;
         return due<=t;
       }
     }
@@ -1857,6 +1873,15 @@ function renderReview(){
   const red=due.filter(w=>w.status==="failed");
   const blue=due.filter(w=>w.status==="mastered");
   const untestedCount=fastTrack.length;
+
+  // 诊断：统计有几个词 learned 是 Date 对象（不是字符串）— v17 addDays 已兼容
+  let strLearned=0, dateLearned=0;
+  data.words.forEach(w=>{
+    if(!w.learned) return;
+    if(w.learned instanceof Date) dateLearned++;
+    else if(typeof w.learned==="string") strLearned++;
+  });
+  console.log(`[诊断] 词库: learned 字符串=${strLearned}, Date 对象=${dateLearned}, 今天=${t}`);
 
   if(!due.length&&!untestedCount){
     box.innerHTML=`<div class="empty-hint">🎉 今天没有到期的复习词！<br>可以学新词，或从「测试」面板选错词本巩固。</div>`;
