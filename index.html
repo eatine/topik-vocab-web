@@ -982,6 +982,28 @@ if (!data || !data.words || !data.words.length) {
       w.status="failed";
       migrated = true;
     }
+    // 关键修复：mastered 词的曲线阶段按真实遗忘区间填充
+    // mastered 后短期复习没意义（已掌握），下次至少 30 天后（D30）才需要再出现
+    // 避免 mastered 词每天都进到期列表（用户反馈的核心 bug）
+    if(w.status==="mastered" && w.learned){
+      let needsFix = false;
+      for(let i=0;i<CURVE_STAGES.length;i++){
+        if(!w.curve[CURVE_STAGES[i]]){
+          // 真实到期日（learned + 偏移天数）
+          const realDueMs=new Date(addDays(w.learned,CURVE_OFFSETS[i])).getTime();
+          // mastered 词的最低到期日：D1-D15 至少 learned+15 天后；D30/D60 用真实日期
+          let minDueMs;
+          if(i<=5){ // R1/R2/R3/D1/D2/D4 用 15 天延迟
+            minDueMs = new Date(w.learned).getTime() + 15*24*60*60*1000;
+          } else { // D7/D15/D30/D60 用真实偏移（D30=30天后,D60=60天后）
+            minDueMs = realDueMs;
+          }
+          w.curve[CURVE_STAGES[i]] = Math.max(realDueMs, minDueMs);
+          needsFix = true;
+        }
+      }
+      if(needsFix) migrated = true;
+    }
   });
   if(merged.length || migrated){
     data.words = data.words.concat(merged);
