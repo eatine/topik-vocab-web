@@ -177,17 +177,8 @@
     <h3 style="margin-top:18px;">粘贴 AI 分析结果</h3>
     <p style="margin-bottom:8px;">按「标签：内容」格式粘贴（AI 会按模板输出），导入后自动加入词库和复习队列。</p>
     <textarea id="lk-import" placeholder="词条：요청하다&#10;汉字词源：要請 + 하다&#10;含义：[动]请求，要求&#10;词性：动词（他动词）&#10;等级：3-4급&#10;活用：요청해요 / 요청한&#10;例句：고객이 추가 서비스를 요청했다.&#10;搭配：도움을 요청하다 | 지원을 요청하다 | 협조를 요청하다&#10;近义词：부탁하다(口语) | 신청하다(申请) | 요구하다(强硬)&#10;反义词：거절하다 | 거부하다&#10;同源词：요청[名] | 요청서[名] | 요청되다[被动]&#10;听力场景：客服对话 / 商务邮件&#10;敬语：요청드리다&#10;真题例句：고객이 추가 서비스를 요청했으나…（52회 듣기 12번）&#10;写作词：是&#10;大作文句式：[정책]이/가 국민을 납득시키기 위해서는 [조건]이 필요하다."></textarea>
-    <button class="btn green" style="margin-top:10px;width:100%;" onclick="importWords()">📥 导入词库</button>
-    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;background:var(--accent-light);border-radius:8px;font-size:.85rem;cursor:pointer;">
-      <input type="checkbox" id="lk-overwrite" style="cursor:pointer;">
-      <span>🔄 <b>覆盖模式</b>（勾选后，已存在词的释义/词性/发音/例句等字段会被新数据覆盖——用于修正之前格式不规范的导入）</span>
-    </label>
-    <button class="btn ghost" style="margin-top:8px;width:100%;" onclick="exportMissingZh()">📤 导出暂无释义词</button>
-    <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="exportRecentImports()">📥 导出最近 30 天导入词（找格式不规范的）</button>
-    <div id="missing-zh-box" class="hidden" style="margin-top:10px;">
-      <div id="missing-zh-text" style="background:var(--accent-light);border-radius:8px;padding:10px;font-size:.85rem;white-space:pre-wrap;"></div>
-      <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="copyText('missing-zh-text')">📎 复制词列表</button>
-    </div>
+    <button class="btn green" style="margin-top:10px;width:100%;" onclick="importWords()">📥 导入词库（已存在词会自动覆盖）</button>
+    <button class="btn ghost" style="margin-top:8px;width:100%;" onclick="exportRecentImports()">📤 导出今天导入的格式不统一词</button>
     <div id="recent-imports-box" class="hidden" style="margin-top:10px;">
       <div id="recent-imports-text" style="background:#fff7e6;border-radius:8px;padding:10px;font-size:.85rem;white-space:pre-wrap;border:1px dashed var(--orange);"></div>
       <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="copyText('recent-imports-text')">📎 复制词列表</button>
@@ -1388,46 +1379,63 @@ function importWords(){
     // 查重
     const exists=data.words.find(x=>x.ko===ko);
     if(exists){
-      // 已存在：补充空字段 + 覆盖核心字段（用户主动重查就是想修正错误）
-      let updated = false;
-      // 核心字段（含义/词性/汉字词源）用户主动重查应该覆盖
-      const newZh=g("含义"); if(newZh){ exists.zh=newZh; updated=true; }
-      const newPos=g("词性"); if(newPos){ exists.pos=newPos; updated=true; }
-      const newHanja=hanjaRaw&&!hanjaRaw.includes("无")?hanjaRaw.replace(/\s*\+\s*/g,"+").trim():"";
-      if(newHanja){ exists.hanja=newHanja; updated=true; }
-      // 实际发音只能补充空字段
-      const pronRawLocal=g("实际发音");
-      if(pronRawLocal&&!pronRawLocal.includes("无")&&!exists.pron){
-        const pm=pronRawLocal.match(/\[[^\]]+\]/);
-        exists.pron=pm?pm[0]:(pronRawLocal.includes("→")?pronRawLocal.split("→")[1].trim():pronRawLocal);
-        updated=true;
-      }
-      // 扩展字段（搭配/例句/近义/反义/同源/真题）空字段才补充
-      const collocRaw=gMulti("搭配");
-      const exampleRaw=gMulti("例句");
-      const synRaw=gMulti("近义词");
-      const antRaw=g("反义词");
-      const cognateRaw=g("同源词");
-      const realExamRaw=gMulti("真题例句");
-      if(!exists.colloc||!exists.colloc.length){
-        if(collocRaw){ exists.colloc=collocRaw.split(/[|｜]/).map(s=>s.trim()).filter(s=>s).slice(0,6); updated=true; }
-      }
-      const fillIfEmpty=(field, val)=>{ if(val&&!exists[field]){ exists[field]=val; updated=true; } };
-      const overwrite=document.getElementById("lk-overwrite")&&document.getElementById("lk-overwrite").checked;
-      const setField=(field, val)=>{
-        if(!val) return;
-        // 覆盖模式开启 → 强制覆盖；未开启 → 仅填空字段（保护已有正确数据）
-        if(overwrite || !exists[field]){ exists[field]=val; updated=true; }
-      };
-      fillIfEmpty("example", exampleRaw);
-      fillIfEmpty("syn", synRaw);
-      fillIfEmpty("ant", antRaw);
-      fillIfEmpty("cognate", cognateRaw);
-      fillIfEmpty("realExam", realExamRaw);
-      if(updated) saveData();
-      skipped.push(ko);
-      return;
+// 已存在：默认覆盖用户提供的所有字段（v22 起）
+    // 设计意图：用户主动重新导入 = 想修正/规范化这些词
+    // 策略：用户提供的字段强制覆盖；用户没提供的字段保持原值
+    let updated = false;
+    const v=g.bind(null, lines, idx); // 简写
+    function gv(label){ return v(label); }
+    // 核心字段：提供即覆盖
+    const newZh=v("含义"); if(newZh){ exists.zh=newZh; updated=true; }
+    const newPos=v("词性"); if(newPos){ exists.pos=newPos; updated=true; }
+    const newHanjaRaw=v("汉字词源");
+    if(newHanjaRaw&&!newHanjaRaw.includes("无")){
+      exists.hanja=newHanjaRaw.replace(/\s*\+\s*/g,"+").trim(); updated=true;
     }
+    // 实际发音：提供即覆盖（含音变标注）
+    const pronRaw=v("实际发音");
+    if(pronRaw&&!pronRaw.includes("无")){
+      const pm=pronRaw.match(/\[[^\]]+\]/);
+      exists.pron=pm?pm[0]:(pronRaw.includes("→")?pronRaw.split("→")[1].trim():pronRaw);
+      updated=true;
+    }
+    // 搭配：完全覆盖（用户重新查词想换规范搭配）
+    const collocRaw=gMulti("搭配");
+    if(collocRaw){ exists.colloc=collocRaw.split(/[|｜]/).map(s=>s.trim()).filter(s=>s).slice(0,6); updated=true; }
+    // 扩展字段：提供即覆盖
+    const setField=(field,val)=>{ if(val){ exists[field]=val; updated=true; } };
+    setField("example", gMulti("例句"));
+    setField("syn", gMulti("近义词"));
+    setField("ant", v("反义词"));
+    setField("cognate", v("同源词"));
+    setField("realExam", gMulti("真题例句"));
+    // 写作词/大作文句式：单独处理（关联 essayFreq 字段）
+    const essayWord=v("写作词");
+    let essayLine=gMulti("大作文句式");
+    if(essayLine){
+      let parts=essayLine.split(/\|/).map(s=>s.trim()).filter(s=>s);
+      if(!parts.length) parts=essayLine.split(/\n/).map(s=>s.trim()).filter(s=>s);
+      const totalLen=parts.reduce((a,b)=>a+(b&&b.length?b.length:0),0);
+      if(parts.length>3 && totalLen/parts.length < 2){
+        const joined=parts.join("");
+        parts=[];
+        const re=/\[[^\]]+\]（[^）]+）/g;
+        let m;
+        while((m=re.exec(joined))!==null) parts.push(m[0]);
+      }
+      if(essayWord&&essayWord.includes("是")&&parts.length){ exists.essayFreq=true; updated=true; }
+      if(parts.length){ exists.essay=[...new Set(parts)].slice(0,3); updated=true; }
+    }
+    // 活用型：解析后覆盖（仅当提供时）
+    const conjRaw=gMulti("活用");
+    if(conjRaw){
+      exists.conj=conjRaw.split(/[\/|]/).map(s=>s.replace(/^(?:현재|과거|과거관형|관형|부사)[:：]\s*/,"").replace(/[()（）]/g,"").trim()).filter(s=>s).slice(0,3);
+      updated=true;
+    }
+    if(updated) saveData();
+    skipped.push(ko);
+    return;
+  }
     // 仅真正的新词才导入（核心修复：learned 设为 null，曲线 R1 不预先标记）
     // 第一次答对时才设 learned=today()，避免"未学就推 D60"的假学习状态
     const w={id:data.words.length,ko,zh:g("含义")||"",pos:g("词性")||"",pron:"",colloc:[],essayFreq:false,essay:[],example:"",syn:"",ant:"",cognate:"",hanja:"",realExam:"",conj:[],learned:null,curve:{},right:0,wrong:0,status:"untested"};
@@ -2282,7 +2290,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v21");
+document.title = document.title.replace("TOPIK","TOPIK v22");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
