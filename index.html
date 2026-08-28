@@ -1578,6 +1578,12 @@ function hasBrokenConj(w){
   // v28.2：名词没有活用，豁免（词性含"名"/"명사"或依存名词）
   const pos=(w.pos||"").trim();
   if(pos && (pos.includes("名") || pos.includes("명사") || pos.includes("依存"))) return null;
+  // v28.3：-되다 结尾的被动动词豁免——被动是规则变化（되다→돼요/됐어요/된），不混淆
+  if((w.ko||"").trim().endsWith("되다")) return null;
+  // v28.3：-적 结尾的词豁免（表示"...的"，如 상대적/질적/우선적，无活用变化）
+  if((w.ko||"").trim().endsWith("적")) return null;
+  // v28.3：副词豁免（词性含"副"/"부사"，副词不变化）
+  if(pos && (pos.includes("副") || pos.includes("부사"))) return null;
   const conj = w.conj;
   if(!Array.isArray(conj) || conj.length === 0) return "无活用型";
   if(conj.length < 3) return `活用型不全(${conj.length}项)`;
@@ -2400,7 +2406,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v28.2");
+document.title = document.title.replace("TOPIK","TOPIK v28.3");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
