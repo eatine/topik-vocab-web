@@ -1384,17 +1384,15 @@ function importWords(){
     // 设计意图：用户主动重新导入 = 想修正/规范化这些词
     // 策略：用户提供的字段强制覆盖；用户没提供的字段保持原值
     let updated = false;
-    const v=g.bind(null, lines, idx); // 简写
-    function gv(label){ return v(label); }
     // 核心字段：提供即覆盖
-    const newZh=v("含义"); if(newZh){ exists.zh=newZh; updated=true; }
-    const newPos=v("词性"); if(newPos){ exists.pos=newPos; updated=true; }
-    const newHanjaRaw=v("汉字词源");
+    const newZh=g("含义"); if(newZh){ exists.zh=newZh; updated=true; }
+    const newPos=g("词性"); if(newPos){ exists.pos=newPos; updated=true; }
+    const newHanjaRaw=g("汉字词源");
     if(newHanjaRaw&&!newHanjaRaw.includes("无")){
       exists.hanja=newHanjaRaw.replace(/\s*\+\s*/g,"+").trim(); updated=true;
     }
     // 实际发音：提供即覆盖（含音变标注）
-    const pronRaw=v("实际发音");
+    const pronRaw=g("实际发音");
     if(pronRaw&&!pronRaw.includes("无")){
       const pm=pronRaw.match(/\[[^\]]+\]/);
       exists.pron=pm?pm[0]:(pronRaw.includes("→")?pronRaw.split("→")[1].trim():pronRaw);
@@ -1407,11 +1405,11 @@ function importWords(){
     const setField=(field,val)=>{ if(val){ exists[field]=val; updated=true; } };
     setField("example", gMulti("例句"));
     setField("syn", gMulti("近义词"));
-    setField("ant", v("反义词"));
-    setField("cognate", v("同源词"));
+    setField("ant", g("反义词"));
+    setField("cognate", g("同源词"));
     setField("realExam", gMulti("真题例句"));
     // 写作词/大作文句式：单独处理（关联 essayFreq 字段）
-    const essayWord=v("写作词");
+    const essayWord=g("写作词");
     let essayLine=gMulti("大作文句式");
     if(essayLine){
       let parts=essayLine.split(/\|/).map(s=>s.trim()).filter(s=>s);
@@ -2341,7 +2339,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v26");
+document.title = document.title.replace("TOPIK","TOPIK v27");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
