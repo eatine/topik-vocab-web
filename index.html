@@ -1573,16 +1573,19 @@ function exportRecentImports(){
 //   - 절실하다 → 해요体写成 "절실하고"（连用形）
 // 保守标记：只标"明显错"的情况（冠形词=原形、过去式=副词、해요体=连用形、含非韩文）
 function hasBrokenConj(w){
+  // v28.1：-하다 结尾的词完全豁免——活用是规则变化（하다→해요/했어요/한），
+  // 简单不会混淆，无论 conj 数据如何都不判定为异常（含"无活用型"也跳过）
+  if((w.ko||"").trim().endsWith("하다")) return null;
   const conj = w.conj;
   if(!Array.isArray(conj) || conj.length === 0) return "无活用型";
   if(conj.length < 3) return `活用型不全(${conj.length}项)`;
   const [h, past, modifier] = conj;
   // 1. 冠形词（数组第3项）== 原形 → AI 没区分冠形词和原形
   if(modifier && modifier.trim() === (w.ko||"").trim()) return `冠形词=原形[${modifier}]`;
-  // 2. 해요体以连接后缀结尾 → 是连用形不是해요体（"-하다" 结尾跳过此检查，因为"~하고"有时是合法的副词用法）
-  if(h && /[고며서면니까면서지만자]$/.test(h) && !/하다$/.test(w.ko||"")) return `해요体疑似连用形[${h}]`;
-  // 3. 过去式以副词后缀结尾 → 게/히/도/만/로서/로써（"-하다" 结尾的 "하게" 跳过，因为"-하게"有副词用法）
-  if(past && /[게히도만로서로써]$/.test(past) && !(/하다$/.test(w.ko||"") && past.endsWith("하게"))) return `过去式疑似副词形[${past}]`;
+  // 2. 해요体以连接后缀结尾 → 是连用形不是해요体
+  if(h && /[고며서면니까면서지만자]$/.test(h)) return `해요体疑似连用形[${h}]`;
+  // 3. 过去式以副词后缀结尾 → 게/히/도/만/로서/로써
+  if(past && /[게히도만로서로써]$/.test(past)) return `过去式疑似副词形[${past}]`;
   // 4. 任一项含非韩文字符
   if(conj.some(s=>s && /[^\uac00-\ud7af\u1100-\u11ff\u3130-\u318f\.\s\[\]\(\)\/\,\-]/.test(s))) return "含非韩文字符";
   return null;
@@ -2395,7 +2398,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v28");
+document.title = document.title.replace("TOPIK","TOPIK v28.1");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
