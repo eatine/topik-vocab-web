@@ -1573,9 +1573,11 @@ function exportRecentImports(){
 //   - 절실하다 → 해요体写成 "절실하고"（连用形）
 // 保守标记：只标"明显错"的情况（冠形词=原形、过去式=副词、해요体=连用形、含非韩文）
 function hasBrokenConj(w){
-  // v28.1：-하다 结尾的词完全豁免——活用是规则变化（하다→해요/했어요/한），
-  // 简单不会混淆，无论 conj 数据如何都不判定为异常（含"无活用型"也跳过）
+  // v28.1：-하다 结尾的词完全豁免——活用是规则变化（하다→해요/했어요/한），简单不会混淆
   if((w.ko||"").trim().endsWith("하다")) return null;
+  // v28.2：名词没有活用，豁免（词性含"名"/"명사"或依存名词）
+  const pos=(w.pos||"").trim();
+  if(pos && (pos.includes("名") || pos.includes("명사") || pos.includes("依存"))) return null;
   const conj = w.conj;
   if(!Array.isArray(conj) || conj.length === 0) return "无活用型";
   if(conj.length < 3) return `活用型不全(${conj.length}项)`;
@@ -2398,7 +2400,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v28.1");
+document.title = document.title.replace("TOPIK","TOPIK v28.2");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
