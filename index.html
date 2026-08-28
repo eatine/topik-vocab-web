@@ -1561,25 +1561,49 @@ function exportRecentImports(){
   box.scrollIntoView({behavior:"smooth"});
 }
 
-// v25：删除"导入异常的残缺词条"
-// 背景：AI 输出带 ** markdown 标记时解析失败，词条虽入库但释义/词性等核心字段为空；
-// v23 自动清洗已把词条名的 * 去掉（所以按 * 找不到了），但字段仍然是空的。
-// 判定：非内置词 +（释义为空 或 词性为空/占位符）→ 视为导入异常，可删除后重新用规范格式导入
+// v26：删除"导入异常的残缺词条"
+// 背景：AI 输出带 ** markdown 标记或直接输出模板提示语（如"📄 真题例句：（如可检索真题PDF则给出，否则跳过）"）
+// 时解析失败/残留，词条虽入库但字段为空或含模板残留文本。
+// v23 自动清洗已把词条名的 * 去掉（所以按 * 找不到了），但字段仍然空/脏。
+// 判定：非内置词 +（释义为空 或 词性为空/占位符 或 任一字段含模板残留文本）→ 视为导入异常
+// 模板残留文本特征：含"如可检索/搜索结果/暂无直接匹配/真题PDF/（如可/给出，否则/跳过"等提示性短语
+function isTemplateResidue(v){
+  if(typeof v!=="string"||!v) return false;
+  return /如可检索|搜索结果中|暂无直接匹配|真题PDF|（如可|给出，否则|跳过|以上是|以下是|（略）|此处输入/.test(v);
+}
 function deleteStarWords(){
   const builtin = new Set(BASE_WORDS.map(b=>b[0]));
+  const FIELD_LIST = ["zh","pos","example","syn","ant","cognate","hanja","realExam","essay","conj","colloc"];
   const broken = data.words.filter(w=>{
     if(!w.ko) return false;
     if(builtin.has(w.ko)) return false;          // 内置词不删
     const zhOk = w.zh && w.zh.trim() && !/^[*\s]+$/.test(w.zh);
     const posOk = w.pos && w.pos.trim() && !/^[—\-*]+$/.test(w.pos);
-    return !zhOk || !posOk;                       // 释义或词性缺失 = 异常
+    // 检查是否有模板残留文本（含 essay/colloc 数组）
+    let hasResidue = false;
+    for(const f of FIELD_LIST){
+      const val = w[f];
+      if(typeof val==="string"){ if(isTemplateResidue(val)){ hasResidue=true; break; } }
+      else if(Array.isArray(val)){ if(val.some(s=>isTemplateResidue(s))){ hasResidue=true; break; } }
+    }
+    return !zhOk || !posOk || hasResidue;         // 释义/词性缺失 或 含模板残留 = 异常
   });
   if(!broken.length){
-    alert("✅ 没有发现导入异常的残缺词条（非内置词中释义/词性缺失的）。\n如果仍有问题词，请在查词面板用规范模板重新导入覆盖。");
+    alert("✅ 没有发现导入异常的残缺词条（非内置词中释义/词性缺失或含模板残留的）。\n如果仍有问题词，请在查词面板用规范模板重新导入覆盖。");
     return;
   }
-  const list = broken.map(w=>`${w.ko}${w.zh?"":"（无释义）"}${(!w.pos||/^[—\-*]+$/.test(w.pos))?"（无词性）":""}`).join("\n");
-  if(!confirm(`⚠️ 将删除 ${broken.length} 个导入异常的残缺词条（释义或词性缺失，多为 markdown 格式解析失败所致）：\n\n${list}\n\n删除后可用规范模板重新导入这些词。确定删除？`)) return;
+  const list = broken.map(w=>{
+    let tags=[];
+    if(!w.zh) tags.push("无释义");
+    if(!w.pos||/^[—\-*]+$/.test(w.pos)) tags.push("无词性");
+    for(const f of FIELD_LIST){
+      const val = w[f];
+      if(typeof val==="string" && isTemplateResidue(val)) tags.push(`含模板残留[${f}]`);
+      else if(Array.isArray(val) && val.some(s=>isTemplateResidue(s))) tags.push(`含模板残留[${f}]`);
+    }
+    return `${w.ko}（${tags.join("、")}）`;
+  }).join("\n");
+  if(!confirm(`⚠️ 将删除 ${broken.length} 个导入异常的残缺词条（释义/词性缺失或含模板残留文本，多为格式解析失败所致）：\n\n${list}\n\n删除后可用规范模板重新导入这些词。确定删除？`)) return;
   const before = data.words.length;
   data.words = data.words.filter(w=>!broken.includes(w));
   saveData(); updateStats();
@@ -2317,7 +2341,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v25");
+document.title = document.title.replace("TOPIK","TOPIK v26");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
