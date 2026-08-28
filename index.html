@@ -178,10 +178,19 @@
     <p style="margin-bottom:8px;">按「标签：内容」格式粘贴（AI 会按模板输出），导入后自动加入词库和复习队列。</p>
     <textarea id="lk-import" placeholder="词条：요청하다&#10;汉字词源：要請 + 하다&#10;含义：[动]请求，要求&#10;词性：动词（他动词）&#10;等级：3-4급&#10;活用：요청해요 / 요청한&#10;例句：고객이 추가 서비스를 요청했다.&#10;搭配：도움을 요청하다 | 지원을 요청하다 | 협조를 요청하다&#10;近义词：부탁하다(口语) | 신청하다(申请) | 요구하다(强硬)&#10;反义词：거절하다 | 거부하다&#10;同源词：요청[名] | 요청서[名] | 요청되다[被动]&#10;听力场景：客服对话 / 商务邮件&#10;敬语：요청드리다&#10;真题例句：고객이 추가 서비스를 요청했으나…（52회 듣기 12번）&#10;写作词：是&#10;大作文句式：[정책]이/가 국민을 납득시키기 위해서는 [조건]이 필요하다."></textarea>
     <button class="btn green" style="margin-top:10px;width:100%;" onclick="importWords()">📥 导入词库</button>
-    <button class="btn ghost" style="margin-top:8px;width:100%;" onclick="exportMissingZh()">📤 导出暂无释义词（查词补充用）</button>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;background:var(--accent-light);border-radius:8px;font-size:.85rem;cursor:pointer;">
+      <input type="checkbox" id="lk-overwrite" style="cursor:pointer;">
+      <span>🔄 <b>覆盖模式</b>（勾选后，已存在词的释义/词性/发音/例句等字段会被新数据覆盖——用于修正之前格式不规范的导入）</span>
+    </label>
+    <button class="btn ghost" style="margin-top:8px;width:100%;" onclick="exportMissingZh()">📤 导出暂无释义词</button>
+    <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="exportRecentImports()">📥 导出最近 30 天导入词（找格式不规范的）</button>
     <div id="missing-zh-box" class="hidden" style="margin-top:10px;">
       <div id="missing-zh-text" style="background:var(--accent-light);border-radius:8px;padding:10px;font-size:.85rem;white-space:pre-wrap;"></div>
       <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="copyText('missing-zh-text')">📎 复制词列表</button>
+    </div>
+    <div id="recent-imports-box" class="hidden" style="margin-top:10px;">
+      <div id="recent-imports-text" style="background:#fff7e6;border-radius:8px;padding:10px;font-size:.85rem;white-space:pre-wrap;border:1px dashed var(--orange);"></div>
+      <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="copyText('recent-imports-text')">📎 复制词列表</button>
     </div>
   </div>
 </div>
@@ -963,6 +972,15 @@ if (!data || !data.words || !data.words.length) {
   data.words.forEach(w=>{
     const src = BASE_WORDS.find(b=>b[0]===w.ko);
     if(src && src[3] && !w.pron) w.pron = src[3];
+    // 全局归一化 essay：字符串→数组；单字符被拆行的数组→正则合并修复。
+    // 覆盖所有词（含 AI 导入词），让损坏数据一次性修复并持久化，避免反复拆行显示。
+    {
+      const fixedEssay = fixEssayArr(w.essay);
+      if(JSON.stringify(fixedEssay) !== JSON.stringify(w.essay)){
+        w.essay = fixedEssay;
+        migrated = true;
+      }
+    }
     // 用户补充资料（DETAILS_EXTRA）合并进已有词：空字段补充，不覆盖已有
     const D = DETAILS_EXTRA[w.ko];
     if(D){
@@ -970,6 +988,20 @@ if (!data || !data.words || !data.words.length) {
       if((!w.colloc || !w.colloc.length) && D.colloc && D.colloc.length){ w.colloc = D.colloc.slice(0,6); migrated = true; }
       if(!w.essayFreq && D.essayFreq){ w.essayFreq = true; migrated = true; }
       if((!w.essay || !w.essay.length) && D.essay && D.essay.length){ w.essay = D.essay; migrated = true; }
+      // 修复 corrupted essay：单字符被拆成多元素的数组（如 ["올"," ","줄",...]）
+      if(Array.isArray(w.essay) && w.essay.length > 3){
+        const avgLen = w.essay.reduce((a,b)=>a+(b&&b.length?b.length:0),0) / w.essay.length;
+        if(avgLen < 2){
+          const joined = w.essay.join("");
+          const fixed = [];
+          const re = /\[[^\]]+\]（[^）]+）/g;
+          let m;
+          while((m = re.exec(joined)) !== null) fixed.push(m[0]);
+          if(fixed.length){ w.essay = fixed; migrated = true; }
+        }
+      }
+      // 兼容旧数据：essay 误存为字符串
+      if(w.essay && typeof w.essay === "string"){ w.essay = [w.essay]; migrated = true; }
       if(!w.example && D.example){ w.example = D.example; migrated = true; }
       if(!w.syn && D.syn){ w.syn = D.syn; migrated = true; }
       if(!w.ant && D.ant){ w.ant = D.ant; migrated = true; }
@@ -1045,6 +1077,25 @@ if (!data || !data.words || !data.words.length) {
   }
 }
 function saveData(){ localStorage.setItem(KEY, JSON.stringify(data)); }
+
+// 修复/归一化 essay 数组：防止单字符拆行或字符串格式
+function fixEssayArr(arr){
+  if(!arr) return [];
+  if(typeof arr === "string") arr=[arr];
+  if(!Array.isArray(arr)) return [];
+  if(arr.length > 3){
+    const totalLen=arr.reduce((a,b)=>a+(b&&b.length?b.length:0),0);
+    if(totalLen/arr.length < 2){
+      const joined=arr.join("");
+      const fixed=[];
+      const re=/\[[^\]]+\]（[^）]+）/g;
+      let m;
+      while((m=re.exec(joined))!==null) fixed.push(m[0]);
+      if(fixed.length) return fixed;
+    }
+  }
+  return arr.filter(s=>s && s.trim && s.trim());
+}
 
 // ===== 设备同步码（电脑 ↔ 手机）=====
 // 紧凑行格式：只传进度 + 自定义词，内置词库两端一致不传输
@@ -1312,7 +1363,7 @@ ${newWords.length?newWords.map((w,i)=>`${i+1}. ${w}`).join("\n"):"(无新词)"}
 敬语：
 真题例句：（如可检索真题PDF则给出，否则跳过）
 写作词：（是/否——该词是否适合用于大作文53/54번）
-大作文句式：（如写作词=是，给出1-2个可替换槽位句式，格式：[句式]（中文翻译））
+大作文句式：（如写作词=是，给出1-2个可替换槽位句式，格式：[句式]（中文翻译），多句用 "|" 分隔或每句单独一行）
 
 请全部使用中文解释，韩文保留原词。`;
   document.getElementById("lk-prompt-text").textContent=prompt;
@@ -1362,6 +1413,12 @@ function importWords(){
         if(collocRaw){ exists.colloc=collocRaw.split(/[|｜]/).map(s=>s.trim()).filter(s=>s).slice(0,6); updated=true; }
       }
       const fillIfEmpty=(field, val)=>{ if(val&&!exists[field]){ exists[field]=val; updated=true; } };
+      const overwrite=document.getElementById("lk-overwrite")&&document.getElementById("lk-overwrite").checked;
+      const setField=(field, val)=>{
+        if(!val) return;
+        // 覆盖模式开启 → 强制覆盖；未开启 → 仅填空字段（保护已有正确数据）
+        if(overwrite || !exists[field]){ exists[field]=val; updated=true; }
+      };
       fillIfEmpty("example", exampleRaw);
       fillIfEmpty("syn", synRaw);
       fillIfEmpty("ant", antRaw);
@@ -1399,9 +1456,23 @@ function importWords(){
       w.conj=[];
     }
     const essayWord=g("写作词");
-    const essayLine=gMulti("大作文句式");
-    if(essayWord&&essayWord.includes("是")&&essayLine) w.essayFreq=true;
-    if(essayLine) w.essay=[...new Set(essayLine.split(/\n/).map(s=>s.trim()).filter(s=>s))].slice(0,3);
+    let essayLine=gMulti("大作文句式");
+    if(essayLine){
+      // 新格式优先按 "|" 分隔；旧格式按换行分隔
+      let parts=essayLine.split(/\|/).map(s=>s.trim()).filter(s=>s);
+      if(!parts.length) parts=essayLine.split(/\n/).map(s=>s.trim()).filter(s=>s);
+      // 若拆分后片段多为单字符，说明文本被错误拆行，按 "[句式]（翻译）" 正则重新合并
+      const totalLen=parts.reduce((a,b)=>a+(b&&b.length?b.length:0),0);
+      if(parts.length>3 && totalLen/parts.length < 2){
+        const joined=parts.join("");
+        parts=[];
+        const re=/\[[^\]]+\]（[^）]+）/g;
+        let m;
+        while((m=re.exec(joined))!==null) parts.push(m[0]);
+      }
+      if(essayWord&&essayWord.includes("是")&&parts.length) w.essayFreq=true;
+      if(parts.length) w.essay=[...new Set(parts)].slice(0,3);
+    }
     data.words.push(w);
     imported++;
   });
@@ -1426,6 +1497,56 @@ function exportMissingZh(){
     // 按词库顺序输出，逗号分隔方便复制到查词输入框
     txt.textContent=missing.map(w=>w.ko).join(", ");
     txt.textContent+="\n\n共 "+missing.length+" 个词暂无释义。\n复制到上方「查词」输入框 → 生成分析 → 粘贴导入（会自动补充释义）。";
+  }
+  box.classList.remove("hidden");
+  box.scrollIntoView({behavior:"smooth"});
+}
+
+// 导出最近 30 天导入的词（id 倒序取前 100 个）
+// 用于：用户发现今天导入的词格式不统一时，一键找出"哪些词需要重新规范化"
+function exportRecentImports(){
+  // 按 id 降序（后导入的在前面）
+  const sorted = [...data.words].sort((a,b)=>(b.id||0)-(a.id||0));
+  // 取最近 100 个，然后过滤掉"明显正常"的：内置词（id 通常较小）、无任何资料/学习记录的"幽灵词"
+  const recent = sorted.slice(0, 100).filter(w => w.zh || w.pron || w.example || (w.right||0)>0 || (w.learned));
+  // 标识"需要重点检查"的（释义或词性缺失、ID 倒序前 30 范围内）
+  const cutoff = sorted.slice(0, 30);
+  const suspicious = new Set();
+  cutoff.forEach(w=>{
+    if(!w.zh||!w.pos||!w.pos.trim()||w.pos==="—"||w.pos==="-") suspicious.add(w.ko);
+    // 解析失败的特征：例句包含 markdown 标记（** 加粗）
+    if(w.example && /^\*\*|\*\*$/.test(w.example)) suspicious.add(w.ko);
+    if(w.zh && /^\*\*|\*\*$/.test(w.zh)) suspicious.add(w.ko);
+  });
+  const box=document.getElementById("recent-imports-box");
+  const txt=document.getElementById("recent-imports-text");
+  if(!recent.length){
+    txt.textContent="✅ 最近 100 个词没有需要导出的";
+  } else {
+    const lines=[];
+    lines.push(`共 ${recent.length} 个最近导入词（按 id 倒序）。\n`);
+    if(suspicious.size){
+      lines.push(`⚠️ ${suspicious.size} 个可疑词（标 ✗ 的）：释义/词性为空，或字段含 markdown 标记。`);
+      const suspiciousList = recent.filter(w=>suspicious.has(w.ko));
+      suspiciousList.forEach(w=>{
+        const issues=[];
+        if(!w.zh||!w.zh.trim()) issues.push("释义空");
+        if(w.zh && /^\*\*|\*\*$/.test(w.zh)) issues.push("释义含**");
+        if(!w.pos||!w.pos.trim()||w.pos==="—"||w.pos==="-") issues.push("词性空");
+        if(w.example && /^\*\*|\*\*$/.test(w.example)) issues.push("例句含**");
+        const tag = issues.length? ` ✗ [${issues.join("、")}]`:"";
+        lines.push(`  ${w.ko}${tag}`);
+      });
+      lines.push(`\n工作流：\n1. 复制以下词列表到查词输入框 → 生成规范 AI 分析\n2. 粘贴 AI 结果回导入框 → ✅ 勾选【覆盖模式】→ 导入词库\n3. 已有释义/发音等会被新数据覆盖修正`);
+      // 输出待重新规范化的词列表（便于复制到查词）
+      lines.push(`\n待规范化的词（直接复制到查词输入框）：`);
+      lines.push(suspiciousList.map(w=>w.ko).join(", "));
+    } else {
+      lines.push("✅ 最近 100 个词都看起来正常（无释义/词性缺失、无 markdown 残留）。");
+      lines.push("如果你仍觉得有问题，可以全部重新规范化：");
+      lines.push(recent.map(w=>w.ko).join(", "));
+    }
+    txt.textContent=lines.join("\n");
   }
   box.classList.remove("hidden");
   box.scrollIntoView({behavior:"smooth"});
@@ -1702,9 +1823,10 @@ function showFeedbackColloc(w,user,ok){
     html+=`<div class="extra" style="margin-top:8px;"><b>📎 该词高频搭配（记熟这些）：</b></div><div class="fb-colloc">${w.colloc.map(c=>`<span class="chip chip-blue">${c}</span>`).join("")}</div>`;
   }
   // 写作高频词展示大作文句式
-  if(w.essayFreq&&w.essay.length){
+  const essayArr1=fixEssayArr(w.essay);
+  if(w.essayFreq&&essayArr1.length){
     html+=`<div class="extra" style="margin-top:10px;"><b>✍️ 大作文表达：</b></div>`;
-    html+=w.essay.slice(0,2).map(e=>{
+    html+=essayArr1.slice(0,2).map(e=>{
       const hasT=e.includes("（");
       const koPart=hasT?e.split("（")[0]:e;
       const zhPart=hasT?`（${e.split("（")[1]}`:"";
@@ -1766,9 +1888,10 @@ function showFeedback(w,user,ok){
     html+=`<div class="extra" style="margin-top:4px;"><b>📄 真题例句：</b>${w.realExam}</div>`;
   }
   // 大作文句式（写作高频词）
-  if(w.essayFreq&&w.essay.length){
+  const essayArr2=fixEssayArr(w.essay);
+  if(w.essayFreq&&essayArr2.length){
     html+=`<div class="extra" style="margin-top:8px;"><b>✍️ 大作文句式：</b></div>`;
-    html+=w.essay.slice(0,2).map(e=>{
+    html+=essayArr2.slice(0,2).map(e=>{
       const hasT=e.includes("（");
       const koPart=hasT?e.split("（")[0]:e;
       const zhPart=hasT?`（${e.split("（")[1]}`:"";
@@ -1776,8 +1899,8 @@ function showFeedback(w,user,ok){
     }).join("");
   }
   // 仿写练习（写作高频词）
-  if(w.essayFreq&&w.essay.length){
-    const skel=w.essay[0]?w.essay[0].split("（")[0].trim():"";
+  if(w.essayFreq&&essayArr2.length){
+    const skel=essayArr2[0]?essayArr2[0].split("（")[0].trim():"";
     html+=`<div class="extra" style="margin-top:14px;"><b>✍️ 仿写练习（用 [ ] 替换主题词造句）：</b></div>`;
     html+=`<div class="fb-essay" style="background:#fff;"><div class="ko-line">${skel}</div></div>`;
     html+=`<textarea id="imitate-input" placeholder="替换 [] 中的主题词，仿写一句韩文句子..." style="min-height:54px;margin-top:8px;font-size:.88rem;"></textarea>`;
@@ -2133,9 +2256,10 @@ function showWordDetail(ko){
   if(w.ant) html+=`<div style="margin-bottom:6px;"><b>❌ 反义词：</b>${w.ant}</div>`;
   if(w.cognate) html+=`<div style="margin-bottom:6px;"><b>📚 同源词：</b>${w.cognate}</div>`;
   if(w.realExam) html+=`<div style="margin-bottom:6px;"><b>📄 真题例句：</b>${w.realExam}</div>`;
-  if(w.essayFreq&&w.essay.length){
+  const essayArr3=fixEssayArr(w.essay);
+  if(w.essayFreq&&essayArr3.length){
     html+=`<div style="margin-bottom:6px;"><b>✍️ 大作文句式：</b></div>`;
-    html+=w.essay.slice(0,2).map(e=>{
+    html+=essayArr3.slice(0,2).map(e=>{
       const hasT=e.includes("（");
       const koPart=hasT?e.split("（")[0]:e;
       const zhPart=hasT?`（${e.split("（")[1]}`:"";
@@ -2158,7 +2282,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v18");
+document.title = document.title.replace("TOPIK","TOPIK v21");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
