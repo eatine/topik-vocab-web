@@ -297,7 +297,7 @@
       <div class="opt" data-f="essay">写作高频</div>
     </div>
     <div class="word-list" id="word-list"></div>
-    <button class="btn" style="margin-top:12px;width:100%;background:var(--red);font-size:.85rem;" onclick="deleteStarWords()">🗑️ 删除所有含 * 的异常词条（markdown 残留）</button>
+    <button class="btn" style="margin-top:12px;width:100%;background:var(--red);font-size:.85rem;" onclick="deleteStarWords()">🗑️ 删除导入异常的词条（非内置 + 释义/词性缺失）</button>
   </div>
 </div>
 
@@ -1561,27 +1561,30 @@ function exportRecentImports(){
   box.scrollIntoView({behavior:"smooth"});
 }
 
-// v24：找出所有含 * 的异常词条（markdown 加粗残留），列出并全部删除
-// 用途：AI 输出带 ** 标记时词条被污染，重新导入规范词无法匹配覆盖 → 直接删掉重来
+// v25：删除"导入异常的残缺词条"
+// 背景：AI 输出带 ** markdown 标记时解析失败，词条虽入库但释义/词性等核心字段为空；
+// v23 自动清洗已把词条名的 * 去掉（所以按 * 找不到了），但字段仍然是空的。
+// 判定：非内置词 +（释义为空 或 词性为空/占位符）→ 视为导入异常，可删除后重新用规范格式导入
 function deleteStarWords(){
-  const starWords = data.words.filter(w=>w.ko && w.ko.includes("*"));
-  if(!starWords.length){
-    alert("✅ 词库中没有含 * 的异常词条，无需删除。");
+  const builtin = new Set(BASE_WORDS.map(b=>b[0]));
+  const broken = data.words.filter(w=>{
+    if(!w.ko) return false;
+    if(builtin.has(w.ko)) return false;          // 内置词不删
+    const zhOk = w.zh && w.zh.trim() && !/^[*\s]+$/.test(w.zh);
+    const posOk = w.pos && w.pos.trim() && !/^[—\-*]+$/.test(w.pos);
+    return !zhOk || !posOk;                       // 释义或词性缺失 = 异常
+  });
+  if(!broken.length){
+    alert("✅ 没有发现导入异常的残缺词条（非内置词中释义/词性缺失的）。\n如果仍有问题词，请在查词面板用规范模板重新导入覆盖。");
     return;
   }
-  // 同时找出字段值含 * 的词（一并提示，但不强制删除）
-  const fieldStar = data.words.filter(w=>{
-    if(starWords.includes(w)) return false;
-    return ["zh","pos","example","syn","ant","cognate","hanja","realExam"].some(f=>w[f] && typeof w[f]==="string" && w[f].includes("*"));
-  });
-  const list = starWords.map(w=>w.ko).join("\n");
-  const fieldNote = fieldStar.length? `\n\n另外有 ${fieldStar.length} 个词字段值含 *（如释义带 **）：\n${fieldStar.map(w=>w.ko).join("、")}\n（这些建议也用规范格式重新导入覆盖）` : "";
-  if(!confirm(`⚠️ 将删除 ${starWords.length} 个含 * 的异常词条（词条名带 markdown 标记，无法正常匹配复习）：\n\n${list}${fieldNote}\n\n删除后可用规范格式重新导入这些词。确定删除？`)) return;
+  const list = broken.map(w=>`${w.ko}${w.zh?"":"（无释义）"}${(!w.pos||/^[—\-*]+$/.test(w.pos))?"（无词性）":""}`).join("\n");
+  if(!confirm(`⚠️ 将删除 ${broken.length} 个导入异常的残缺词条（释义或词性缺失，多为 markdown 格式解析失败所致）：\n\n${list}\n\n删除后可用规范模板重新导入这些词。确定删除？`)) return;
   const before = data.words.length;
-  data.words = data.words.filter(w=>!(w.ko && w.ko.includes("*")));
+  data.words = data.words.filter(w=>!broken.includes(w));
   saveData(); updateStats();
   if(typeof renderWordList==="function") renderWordList();
-  alert(`✅ 已删除 ${before - data.words.length} 个含 * 的异常词条。\n\n可回到查词面板，用规范模板重新导入这些词。`);
+  alert(`✅ 已删除 ${before - data.words.length} 个导入异常的残缺词条。\n\n可回到查词面板，用规范模板重新导入这些词。`);
 }
 
 // ================= 测试 =================
@@ -2314,7 +2317,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v24");
+document.title = document.title.replace("TOPIK","TOPIK v25");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
