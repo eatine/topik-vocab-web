@@ -179,6 +179,7 @@
     <textarea id="lk-import" placeholder="词条：요청하다&#10;汉字词源：要請 + 하다&#10;含义：[动]请求，要求&#10;词性：动词（他动词）&#10;等级：3-4급&#10;活用：요청해요 / 요청한&#10;例句：고객이 추가 서비스를 요청했다.&#10;搭配：도움을 요청하다 | 지원을 요청하다 | 협조를 요청하다&#10;近义词：부탁하다(口语) | 신청하다(申请) | 요구하다(强硬)&#10;反义词：거절하다 | 거부하다&#10;同源词：요청[名] | 요청서[名] | 요청되다[被动]&#10;听力场景：客服对话 / 商务邮件&#10;敬语：요청드리다&#10;真题例句：고객이 추가 서비스를 요청했으나…（52회 듣기 12번）&#10;写作词：是&#10;大作文句式：[정책]이/가 국민을 납득시키기 위해서는 [조건]이 필요하다."></textarea>
     <button class="btn green" style="margin-top:10px;width:100%;" onclick="importWords()">📥 导入词库（已存在词会自动覆盖）</button>
     <button class="btn ghost" style="margin-top:8px;width:100%;" onclick="exportRecentImports()">📤 导出今天导入的格式不统一词</button>
+    <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="exportBrokenConj()">📤 导出活用型异常的词（해요体/过去式/冠形词错乱）</button>
     <div id="recent-imports-box" class="hidden" style="margin-top:10px;">
       <div id="recent-imports-text" style="background:#fff7e6;border-radius:8px;padding:10px;font-size:.85rem;white-space:pre-wrap;border:1px dashed var(--orange);"></div>
       <button class="btn ghost" style="margin-top:6px;width:100%;" onclick="copyText('recent-imports-text')">📎 复制词列表</button>
@@ -1565,6 +1566,27 @@ function exportRecentImports(){
 // v23 自动清洗已把词条名的 * 去掉（所以按 * 找不到了），但字段仍然空/脏。
 // 判定：非内置词 +（释义为空 或 词性为空/占位符 或 任一字段含模板残留文本）→ 视为导入异常
 // 模板残留文本特征：含"如可检索/搜索结果/暂无直接匹配/真题PDF/（如可/给出，否则/跳过"等提示性短语
+// v28：判定活用型（conj）数组是否异常
+// 背景：AI 查词时容易把"해요体/过去式/冠形词"三种活用形式搞混，例如：
+//   - 끌어올리다 → 写成 [끌어올리고, 끌어올리는, 끌어올리다]（连用形/现在时/原形，全错）
+//   - 홀가분하다 → 过去式写成 "홀가분하게"（副词 게 结尾，不是过去式）
+//   - 절실하다 → 해요体写成 "절실하고"（连用形）
+// 保守标记：只标"明显错"的情况（冠形词=原形、过去式=副词、해요体=连用形、含非韩文）
+function hasBrokenConj(w){
+  const conj = w.conj;
+  if(!Array.isArray(conj) || conj.length === 0) return "无活用型";
+  if(conj.length < 3) return `活用型不全(${conj.length}项)`;
+  const [h, past, modifier] = conj;
+  // 1. 冠形词（数组第3项）== 原形 → AI 没区分冠形词和原形
+  if(modifier && modifier.trim() === (w.ko||"").trim()) return `冠形词=原形[${modifier}]`;
+  // 2. 해요体以连接后缀结尾 → 是连用形不是해요体（"-하다" 结尾跳过此检查，因为"~하고"有时是合法的副词用法）
+  if(h && /[고며서면니까면서지만자]$/.test(h) && !/하다$/.test(w.ko||"")) return `해요体疑似连用形[${h}]`;
+  // 3. 过去式以副词后缀结尾 → 게/히/도/만/로서/로써（"-하다" 结尾的 "하게" 跳过，因为"-하게"有副词用法）
+  if(past && /[게히도만로서로써]$/.test(past) && !(/하다$/.test(w.ko||"") && past.endsWith("하게"))) return `过去式疑似副词形[${past}]`;
+  // 4. 任一项含非韩文字符
+  if(conj.some(s=>s && /[^\uac00-\ud7af\u1100-\u11ff\u3130-\u318f\.\s\[\]\(\)\/\,\-]/.test(s))) return "含非韩文字符";
+  return null;
+}
 function isTemplateResidue(v){
   if(typeof v!=="string"||!v) return false;
   return /如可检索|搜索结果中|暂无直接匹配|真题PDF|（如可|给出，否则|跳过|以上是|以下是|（略）|此处输入/.test(v);
@@ -1584,10 +1606,12 @@ function deleteStarWords(){
       if(typeof val==="string"){ if(isTemplateResidue(val)){ hasResidue=true; break; } }
       else if(Array.isArray(val)){ if(val.some(s=>isTemplateResidue(s))){ hasResidue=true; break; } }
     }
-    return !zhOk || !posOk || hasResidue;         // 释义/词性缺失 或 含模板残留 = 异常
+    // v28：活用型异常（AI 错把해요体/过去式/冠形词搞混）
+    const conjIssue = hasBrokenConj(w);
+    return !zhOk || !posOk || hasResidue || !!conjIssue;
   });
   if(!broken.length){
-    alert("✅ 没有发现导入异常的残缺词条（非内置词中释义/词性缺失或含模板残留的）。\n如果仍有问题词，请在查词面板用规范模板重新导入覆盖。");
+    alert("✅ 没有发现导入异常的残缺词条（非内置词中释义/词性缺失、含模板残留、或活用型异常的）。\n如果仍有问题词，请在查词面板用规范模板重新导入覆盖。");
     return;
   }
   const list = broken.map(w=>{
@@ -1599,6 +1623,8 @@ function deleteStarWords(){
       if(typeof val==="string" && isTemplateResidue(val)) tags.push(`含模板残留[${f}]`);
       else if(Array.isArray(val) && val.some(s=>isTemplateResidue(s))) tags.push(`含模板残留[${f}]`);
     }
+    const conjIssue = hasBrokenConj(w);
+    if(conjIssue) tags.push(`活用型错[${conjIssue}]`);
     return `${w.ko}（${tags.join("、")}）`;
   }).join("\n");
   if(!confirm(`⚠️ 将删除 ${broken.length} 个导入异常的残缺词条（释义/词性缺失或含模板残留文本，多为格式解析失败所致）：\n\n${list}\n\n删除后可用规范模板重新导入这些词。确定删除？`)) return;
@@ -1607,6 +1633,36 @@ function deleteStarWords(){
   saveData(); updateStats();
   if(typeof renderWordList==="function") renderWordList();
   alert(`✅ 已删除 ${before - data.words.length} 个导入异常的残缺词条。\n\n可回到查词面板，用规范模板重新导入这些词。`);
+}
+
+// v28：导出所有活用型异常的词（供用户复制去重新查词）
+function exportBrokenConj(){
+  const builtin = new Set(BASE_WORDS.map(b=>b[0]));
+  const broken = data.words.filter(w=>{
+    if(!w.ko) return false;
+    if(builtin.has(w.ko)) return false;
+    return !!hasBrokenConj(w);
+  });
+  if(!broken.length){
+    alert("✅ 没有发现活用型异常的词。");
+    return;
+  }
+  const lines=[`共 ${broken.length} 个活用型异常的词（AI 查词时把해요体/过去式/冠形词搞混）。\n`];
+  broken.forEach(w=>{
+    lines.push(`  ${w.ko} → ${hasBrokenConj(w)} | 当前：${JSON.stringify(w.conj)}`);
+  });
+  lines.push(`\n工作流：\n1. 复制以下词列表（逗号分隔）\n2. 粘贴到查词面板输入框 → 用规范模板重新生成（活用型：X해요 / X했어요 / X는）\n3. 粘贴回导入框 → 默认覆盖`);
+  lines.push(`\n待重新规范化的词：`);
+  lines.push(broken.map(w=>w.ko).join(", "));
+  const box=document.getElementById("recent-imports-box");
+  const txt=document.getElementById("recent-imports-text");
+  if(txt && box){
+    txt.textContent=lines.join("\n");
+    box.classList.remove("hidden");
+    box.scrollIntoView({behavior:"smooth"});
+  } else {
+    alert(lines.join("\n"));
+  }
 }
 
 // ================= 测试 =================
@@ -2339,7 +2395,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v27");
+document.title = document.title.replace("TOPIK","TOPIK v28");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
