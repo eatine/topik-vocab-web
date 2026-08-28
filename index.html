@@ -958,6 +958,54 @@ if (!data || !data.words || !data.words.length) {
   const known = new Set(data.words.map(w=>w.ko));
   const merged = [];
   BASE_WORDS.forEach((w,i)=>{ if(!known.has(w[0])) merged.push(buildWord(w, data.words.length + merged.length)); });
+  // v23：清洗词条名中的 markdown 残留（**얀미다** → 얀미다）
+  // 根因：AI 输出带 ** 加粗标记时，词条被以 **xx** 形式存入 ko；
+  // 重新导入规范词（不带 *）时精确匹配 ko===ko 失败 → 永远无法覆盖。
+  // 必须在迁移循环前清洗，后续 DATA_SOURCE/CONJ 补全才能正确匹配。
+  let cleanedStars = 0;
+  const hadStar = data.words.some(w=>w.ko && w.ko.includes("*"));
+  if(hadStar){
+    // 字段值里的 markdown 残留也一并清洗（** 加粗标记不是韩文内容）
+    const cleanStr=(s)=>{ if(typeof s!=="string"||!s) return s; if(!s.includes("*")) return s; return s.replace(/\*\*/g,"").replace(/\*/g,"").replace(/\s+/g," ").trim(); };
+    const kept = [];
+    for(const w of data.words){
+      if(w.ko && w.ko.includes("*")){
+        const clean = w.ko.replace(/\*\*/g,"").replace(/\*/g,"").trim();
+        if(clean && clean !== w.ko){
+          const dup = data.words.find(x=>x.ko===clean && x!==w);
+          if(dup){
+            // 同名词已存在 → 合并进度后丢弃带 * 的条目
+            dup.right = Math.max(dup.right||0, w.right||0);
+            dup.wrong = Math.max(dup.wrong||0, w.wrong||0);
+            if(!dup.learned && w.learned) dup.learned = w.learned;
+            if(w.curve){ if(!dup.curve) dup.curve={}; for(const k in w.curve) if(!dup.curve[k]) dup.curve[k]=w.curve[k]; }
+            if(!dup.zh && w.zh) dup.zh = cleanStr(w.zh);
+            if(!dup.pos && w.pos) dup.pos = cleanStr(w.pos);
+            if(!dup.pron && w.pron) dup.pron = w.pron;
+            if((!dup.colloc || !dup.colloc.length) && w.colloc && w.colloc.length) dup.colloc = w.colloc;
+            if(!dup.example && w.example) dup.example = cleanStr(w.example);
+            cleanedStars++;
+            continue; // 丢弃带 * 的条目
+          } else {
+            w.ko = clean;
+            cleanedStars++;
+          }
+        }
+      }
+      // 字段值清洗（无论词条名是否带 *）
+      ["zh","pos","example","syn","ant","cognate","hanja","realExam"].forEach(f=>{
+        if(w[f] && typeof w[f]==="string" && w[f].includes("*")){
+          const c=cleanStr(w[f]);
+          if(c!==w[f]){ w[f]=c; cleanedStars++; }
+        }
+      });
+      if(w.colloc && Array.isArray(w.colloc)){
+        w.colloc = w.colloc.map(c=>cleanStr(c)).filter(s=>s);
+      }
+      kept.push(w);
+    }
+    data.words = kept;
+  }
   // 已存在词的发音补全（老数据没有 pron 字段）
   let migrated = false;
   data.words.forEach(w=>{
@@ -1062,9 +1110,24 @@ if (!data || !data.words || !data.words.length) {
       // 注意：这里不预填任何未来时间戳！D30/D60 保持空，等真实到期
     }
   });
-  if(merged.length || migrated){
+  if(merged.length || migrated || cleanedStars){
     data.words = data.words.concat(merged);
     saveData();
+  }
+  // 清洗报告：含 * 的词已还原，供用户看到修复结果
+  if(cleanedStars){
+    setTimeout(()=>{
+      try{
+        const box=document.getElementById("review-list")||document.body;
+        const banner=document.createElement("div");
+        banner.id="star-clean-banner";
+        banner.style.cssText="background:#fff7e6;border:1px dashed var(--orange);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.85rem;color:#7d5a00;";
+        banner.innerHTML=`✨ v23 已自动清洗 <b>${cleanedStars}</b> 个含 <code>*</code> 的词条（如 <code>**얀미다**</code> → <code>얀미다</code>）。现在重新导入规范词即可正常覆盖。`;
+        // 插到复习面板顶部（若存在）
+        const reviewTitle=document.querySelector("#panel-review .card h2");
+        if(reviewTitle) reviewTitle.after(banner);
+      }catch(e){}
+    },300);
   }
 }
 function saveData(){ localStorage.setItem(KEY, JSON.stringify(data)); }
@@ -2290,7 +2353,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v22");
+document.title = document.title.replace("TOPIK","TOPIK v23");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
