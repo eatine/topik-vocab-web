@@ -137,6 +137,42 @@
   .help-text{font-size:.8rem;color:var(--text-2);background:var(--accent-light);border-radius:8px;padding:10px 14px;margin:10px 0;line-height:1.7}
 
   @media(max-width:600px){.choices{grid-template-columns:1fr}.q-word{font-size:1.8rem}.container{padding:0 10px}}
+
+  /* ============ 🎴 词卡学习（v30） ============ */
+  #card-overlay{position:fixed;inset:0;background:#FBF9F5;z-index:999;display:flex;flex-direction:column;overflow-y:auto}
+  #card-topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #EFEAE2}
+  #card-progress{font-size:.85rem;color:#8A8578;font-weight:700}
+  #card-close-btn{border:none;background:#EFEAE2;color:#6B6659;font-size:.82rem;font-weight:700;padding:7px 16px;border-radius:20px;cursor:pointer}
+  #card-close-btn:hover{background:#E4DED3}
+  #card-colorbar{height:5px;width:100%}
+  #card-inner{flex:1;max-width:640px;width:100%;margin:0 auto;padding:28px 24px 40px}
+  .card-hint{font-size:.78rem;color:#A8A296;text-align:center;margin-bottom:18px}
+  .card-status-row{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  .card-status-chip{font-size:.78rem;font-weight:800;padding:3px 12px;border-radius:14px}
+  .card-curve{font-size:.8rem;color:#8A8578;font-weight:600}
+  .card-ko{font-size:2.6rem;font-weight:800;letter-spacing:.02em;line-height:1.2;margin-bottom:8px;color:#2A2826}
+  .card-posline{font-size:.9rem;color:#98917F;margin-bottom:20px}
+  .card-posline .card-zh-main{color:#4A463D;font-weight:600;margin-left:4px}
+  .card-block{background:#fff;border:1px solid #EFEAE2;border-radius:14px;padding:14px 18px;margin-bottom:12px}
+  .card-block-title{font-size:.76rem;font-weight:800;color:#B9B2A3;letter-spacing:.05em;margin-bottom:7px}
+  .card-block-body{font-size:.92rem;line-height:1.75;color:#3D3A33}
+  .card-block-body .zh-trans{color:#8A8578;font-size:.86rem}
+  .card-ko-pron{font-weight:800;color:#A6763C;font-size:1.05rem}
+  .card-conj span{display:inline-block;background:#F5F1E8;border-radius:8px;padding:3px 10px;margin:2px 4px 2px 0;font-size:.84rem;font-weight:600;color:#5C5648}
+  .card-colloc span{display:inline-block;background:#EDF1F6;color:#4A6478;border-radius:10px;padding:3px 11px;margin:2px 4px 2px 0;font-size:.82rem;font-weight:600}
+  .card-footer{position:sticky;bottom:0;background:linear-gradient(to top,#FBF9F5 70%,rgba(251,249,245,0));padding:14px 20px 22px;display:flex;gap:10px;justify-content:center}
+  .card-btn{border:none;padding:12px 20px;border-radius:14px;font-size:.92rem;font-weight:700;cursor:pointer;transition:transform .05s}
+  .card-btn:active{transform:scale(.97)}
+  .card-btn.primary{background:#2A2826;color:#fff;min-width:150px}
+  .card-btn.ghost{background:#EFEAE2;color:#6B6659}
+  .card-btn.reveal{background:#A6763C;color:#fff}
+  .card-essay{background:#F7F3EC;border-left:3px solid #C9B48C;border-radius:0 10px 10px 0;padding:10px 14px;margin:6px 0;font-size:.88rem;line-height:1.7}
+  .card-essay .zh-trans{color:#8A8578}
+  /* 范围选择 */
+  #card-range-box{background:#F5F1E8;border:1px dashed #D8CFBC;border-radius:12px;padding:10px 14px;margin-top:8px}
+  .card-range-opts{display:flex;flex-wrap:wrap;gap:6px}
+  .card-range-opt{border:1.5px solid #D8CFBC;background:#fff;border-radius:10px;padding:5px 12px;font-size:.8rem;font-weight:600;color:#6B6659;cursor:pointer}
+  .card-range-opt.sel{border-color:#A6763C;background:#A6763C;color:#fff}
 </style>
 </head>
 <body>
@@ -149,6 +185,7 @@
     <div class="st"><div class="n" id="st-mastered">0</div><div class="l">已掌握</div></div>
     <div class="st"><div class="n" id="st-failed">0</div><div class="l">待巩固</div></div>
     <div class="st"><div class="n" id="st-today">0</div><div class="l">今日复习</div></div>
+    <div class="st"><div class="n" id="st-view">0</div><div class="l">今日浏览</div></div>
   </div>
 </div>
 
@@ -299,6 +336,23 @@
     </div>
     <div class="word-list" id="word-list"></div>
     <button class="btn" style="margin-top:12px;width:100%;background:var(--red);font-size:.85rem;" onclick="deleteStarWords()">🗑️ 删除导入异常的词条（非内置 + 释义/词性缺失）</button>
+    <button class="btn" style="margin-top:10px;width:100%;background:var(--purple);font-size:.95rem;" onclick="openCardMode('focus')">🎴 词卡学习（先回忆，后看答案）</button>
+    <button class="btn ghost" style="margin-top:6px;width:100%;font-size:.8rem;" onclick="toggleCardRangeBox()">📋 换范围 / 随机顺序</button>
+    <div id="card-range-box" class="hidden" style="margin-top:8px;">
+      <div style="font-size:.78rem;color:#8A8578;margin-bottom:6px;font-weight:700;">选择词卡范围：</div>
+      <div class="card-range-opts">
+        <span class="card-range-opt sel" data-r="focus" onclick="setCardRange(this,'focus')">🎯 待巩固+未测</span>
+        <span class="card-range-opt" data-r="wrong" onclick="setCardRange(this,'wrong')">❌ 错词本</span>
+        <span class="card-range-opt" data-r="untested" onclick="setCardRange(this,'untested')">🆕 未测过</span>
+        <span class="card-range-opt" data-r="mastered" onclick="setCardRange(this,'mastered')">✅ 已掌握</span>
+        <span class="card-range-opt" data-r="essay" onclick="setCardRange(this,'essay')">✍️ 写作高频</span>
+        <span class="card-range-opt" data-r="all" onclick="setCardRange(this,'all')">📚 全部</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.8rem;color:#6B6659;cursor:pointer;">
+        <input type="checkbox" id="card-shuffle" style="cursor:pointer;"> 🔀 随机顺序（防"背位置"）
+      </label>
+      <button class="btn green" style="margin-top:8px;width:100%;font-size:.85rem;" onclick="openCardMode(window._cardRange||'focus')">▶ 开始浏览</button>
+    </div>
   </div>
 </div>
 
@@ -1321,6 +1375,11 @@ function updateStats(){
   document.getElementById("st-mastered").textContent=mastered;
   document.getElementById("st-failed").textContent=failed;
   document.getElementById("st-today").textContent=dueWords().length;
+  // 今日浏览（词卡学习计数，不影响测试曲线）
+  const t=today();
+  const vs = (data.viewSession && data.viewSession.date===t) ? data.viewSession.count : 0;
+  const stv=document.getElementById("st-view");
+  if(stv) stv.textContent=vs;
 }
 
 // ================= 查词 =================
@@ -1679,6 +1738,157 @@ function exportBrokenConj(){
     alert(lines.join("\n"));
   }
 }
+
+// ================= 🎴 词卡学习（v30） =================
+let cardQueue=[], cardIndex=0, cardShown=false, cardViewed=new Set(), cardRange="focus";
+const CARD_COLORS = { failed:"#C97376", untested:"#D4B26A", mastered:"#7BAA8C" };
+const CARD_LABELS = { failed:"待巩固", untested:"未测过", mastered:"已掌握" };
+function toggleCardRangeBox(){
+  const box=document.getElementById("card-range-box");
+  box.classList.toggle("hidden");
+}
+function setCardRange(el, range){
+  cardRange=range;
+  document.querySelectorAll("#card-range-box .card-range-opt").forEach(o=>o.classList.remove("sel"));
+  el.classList.add("sel");
+}
+// 打开词卡：优先级（待巩固>未测>已掌握）+ 音序；可选随机
+function openCardMode(range){
+  cardRange = range || cardRange || "focus";
+  let list = data.words.slice();
+  if(cardRange==="focus") list = list.filter(w=>w.status==="failed"||w.status==="untested");
+  else if(cardRange==="wrong") list = list.filter(w=>w.status==="failed");
+  else if(cardRange==="untested") list = list.filter(w=>w.status==="untested");
+  else if(cardRange==="mastered") list = list.filter(w=>w.status==="mastered");
+  else if(cardRange==="essay") list = list.filter(w=>w.essayFreq);
+  if(!list.length){ alert("该范围没有词 🎉"); return; }
+  const koCollator = new Intl.Collator("ko", {sensitivity:"base", numeric:true});
+  list.sort((a,b)=>priorityOf(a)-priorityOf(b) || koCollator.compare(a.ko||"", b.ko||""));
+  const shuffle = document.getElementById("card-shuffle") && document.getElementById("card-shuffle").checked;
+  if(shuffle){
+    // Fisher-Yates 洗牌（随机模式，防背位置）
+    for(let i=list.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [list[i],list[j]]=[list[j],list[i]];
+    }
+  }
+  cardQueue=list; cardIndex=0; cardShown=false; cardViewed=new Set();
+  document.getElementById("card-overlay").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+  renderCard(); markViewed();
+}
+// 记忆曲线阶段文字（科学展示：已完成 X/10，下一阶段 X 到期日）
+function curveText(w){
+  if(!w.learned) return "📍 新词 · 首次答对后进入记忆曲线";
+  const t=today();
+  const nextIdx = CURVE_STAGES.findIndex(s=>!w.curve[s]);
+  if(nextIdx===-1) return "📍 记忆曲线 10/10 全部完成 🎉";
+  const stage=CURVE_STAGES[nextIdx], offset=CURVE_OFFSETS[nextIdx];
+  const due=addDays(w.learned, offset);
+  if(!due) return `📍 记忆曲线：已完成 ${nextIdx}/10 · 下一阶段 ${stage}`;
+  const overdue = due <= t;
+  return `📍 记忆曲线：已完成 ${nextIdx}/10 · 下一阶段 ${stage}${overdue?"（已到期 ⏰）":"（"+due+" 到期）"}`;
+}
+function renderCard(){
+  const w = cardQueue[cardIndex];
+  if(!w) return;
+  document.getElementById("card-progress").textContent = `词卡 ${cardIndex+1} / ${cardQueue.length}`;
+  const color = CARD_COLORS[w.status] || "#B8B5B0";
+  const label = CARD_LABELS[w.status] || "其他";
+  document.getElementById("card-colorbar").style.background = color;
+  document.getElementById("card-answer-btn").textContent = cardShown ? "🙈 隐藏答案" : "👁 显示答案";
+  document.getElementById("card-answer-btn").className = "card-btn " + (cardShown ? "ghost" : "reveal");
+  const inner = document.getElementById("card-inner");
+  // 例句：韩文常显，中文（（）内）答案后显示
+  const exampleRaw = w.example || "";
+  const exMatch = exampleRaw.match(/^([^（(]+)/);
+  const exKo = exMatch ? exMatch[1].trim() : exampleRaw;
+  const exZh = exampleRaw.includes("（") ? exampleRaw.slice(exampleRaw.indexOf("（")) : (exampleRaw.includes("(") ? exampleRaw.slice(exampleRaw.indexOf("(")) : "");
+  // 近义/反义/同源：主要是中文辨析，答案后显示
+  const synZh = w.syn ? w.syn.split(/[|｜]/).slice(0,3).join(" · ") : "";
+  const antZh = w.ant ? w.ant.split(/[|｜]/).slice(0,3).join(" · ") : "";
+  const cogZh = w.cognate ? w.cognate.split(/[|｜]/).slice(0,4).join(" · ") : "";
+  // 大作文句式
+  const essayArr = Array.isArray(w.essay) ? w.essay.slice(0,2) : [];
+  let html = `<div class="card-hint">${cardShown?"🔓 答案已显示 · 认真看一遍再翻下一张":"🤔 先回忆这个词的意思，再点「显示答案」"}</div>`;
+  // 状态行
+  html += `<div class="card-status-row">
+    <span class="card-status-chip" style="background:${color}20;color:${color};">${label}</span>
+    <span class="card-curve">${curveText(w)}</span>
+  </div>`;
+  // 韩文 + 词性 + 释义（释义答案后显示）
+  html += `<div class="card-ko">${w.ko}</div>`;
+  html += `<div class="card-posline">${w.pos||""}${cardShown&&w.zh?`<span class="card-zh-main">· ${w.zh}</span>`:""}</div>`;
+  // 发音 + 活用
+  if(w.pron){
+    html += `<div class="card-block"><div class="card-block-title">实际发音 · 音变后读音</div><div class="card-block-body"><span class="card-ko-pron">${w.pron}</span></div></div>`;
+  }
+  if(w.conj && w.conj.length){
+    html += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${w.conj.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+  }
+  // 例句
+  if(exampleRaw){
+    html += `<div class="card-block"><div class="card-block-title">例句</div><div class="card-block-body">${exKo}${cardShown&&exZh?` <span class="zh-trans">${exZh}</span>`:""}</div></div>`;
+  }
+  // 搭配
+  if(w.colloc && w.colloc.length){
+    html += `<div class="card-block"><div class="card-block-title">常见搭配</div><div class="card-block-body card-colloc">${w.colloc.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+  }
+  // 近义/反义/同源（答案后显示——中文辨析）
+  if(cardShown){
+    if(synZh) html += `<div class="card-block"><div class="card-block-title">近义词辨析</div><div class="card-block-body">${synZh}</div></div>`;
+    if(antZh) html += `<div class="card-block"><div class="card-block-title">反义词</div><div class="card-block-body">${antZh}</div></div>`;
+    if(cogZh) html += `<div class="card-block"><div class="card-block-title">同源词</div><div class="card-block-body">${cogZh}</div></div>`;
+    if(w.hanja && !w.hanja.includes("固有")) html += `<div class="card-block"><div class="card-block-title">汉字词源</div><div class="card-block-body">${w.hanja}</div></div>`;
+    if(essayArr.length){
+      html += `<div class="card-block"><div class="card-block-title">✍️ 大作文句式</div><div class="card-block-body">`;
+      essayArr.forEach(e=>{
+        const m = e.match(/^(\[[^\]]+\][^\（(]*)(（[^）]+）|\([^)]+\))?$/);
+        if(m) html += `<div class="card-essay">${m[1]}<br><span class="zh-trans">${m[2]||""}</span></div>`;
+        else html += `<div class="card-essay">${e}</div>`;
+      });
+      html += `</div></div>`;
+    }
+  }
+  inner.innerHTML = html;
+}
+function toggleCardAnswer(){ cardShown=!cardShown; renderCard(); }
+function nextCard(){
+  if(cardIndex < cardQueue.length-1){ cardIndex++; cardShown=false; renderCard(); markViewed(); }
+  else closeCardMode(true);
+}
+function prevCard(){ if(cardIndex>0){ cardIndex--; cardShown=false; renderCard(); } }
+// 当日浏览计数（不影响测试曲线，仅正反馈）
+function markViewed(){
+  const w=cardQueue[cardIndex];
+  if(!w || cardViewed.has(w.ko)) return;
+  cardViewed.add(w.ko);
+  const t=today();
+  if(!data.viewSession || data.viewSession.date!==t) data.viewSession={date:t,count:0};
+  data.viewSession.count++;
+  saveData(); updateStats();
+}
+function closeCardMode(showStats){
+  document.getElementById("card-overlay").classList.add("hidden");
+  document.body.style.overflow="";
+  if(showStats && cardViewed.size){
+    const t=today();
+    const total = (data.viewSession && data.viewSession.date===t) ? data.viewSession.count : cardViewed.size;
+    const reviewed = dueWords().length;
+    alert(`🎉 本次浏览 ${cardViewed.size} 词！\n📚 今日累计学习 ${reviewed + total} 词（复习 ${reviewed} + 浏览 ${total}）`);
+  }
+}
+// 键盘快捷键：→/空格=下一个、←=上一个、Esc=关闭、空格(未显示答案时)=显示答案
+document.addEventListener("keydown", e=>{
+  if(document.getElementById("card-overlay").classList.contains("hidden")) return;
+  if(e.key==="Escape") closeCardMode();
+  else if(e.key==="ArrowRight") nextCard();
+  else if(e.key==="ArrowLeft") prevCard();
+  else if(e.code==="Space" || e.key===" "){
+    e.preventDefault();
+    if(!cardShown) toggleCardAnswer(); else nextCard();
+  }
+});
 
 // ================= 测试 =================
 let currentMode="k2c", selRange="all", quizQueue=[], quizIndex=0, quizScore=0, quizResults=[];
@@ -2418,7 +2628,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v29");
+document.title = document.title.replace("TOPIK","TOPIK v30");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
@@ -2447,5 +2657,21 @@ updateStats();
 <div id="word-detail-overlay" class="hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.5);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;">
   <div style="background:#fff;border-radius:16px;padding:24px;max-height:85vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.2);width:100%;"></div>
 </div>
+
+<!-- 🎴 词卡学习覆盖层（v30） -->
+<div id="card-overlay" class="hidden">
+  <div id="card-topbar">
+    <span id="card-progress">词卡 1 / 0</span>
+    <button id="card-close-btn" onclick="closeCardMode()">✕ 关闭</button>
+  </div>
+  <div id="card-colorbar"></div>
+  <div id="card-inner"></div>
+  <div class="card-footer">
+    <button class="card-btn ghost" onclick="prevCard()">← 上一个</button>
+    <button class="card-btn reveal" id="card-answer-btn" onclick="toggleCardAnswer()">👁 显示答案</button>
+    <button class="card-btn primary" onclick="nextCard()">下一个 →</button>
+  </div>
+</div>
+
 </body>
 </html>
