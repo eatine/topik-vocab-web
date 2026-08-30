@@ -1798,6 +1798,16 @@ function curveText(w){
   const overdue = due <= t;
   return `📍 记忆曲线：已完成 ${nextIdx}/10 · 下一阶段 ${stage}${overdue?"（已到期 ⏰）":"（"+due+" 到期）"}`;
 }
+// v30.5：清洗 w.conj，过滤掉 AI 误塞的"实际发音"项（格式如 "实际发音：[xxx]" 或以 [/( 开头）
+function cleanConj(conj){
+  if(!Array.isArray(conj)) return [];
+  return conj.filter(c=>{
+    if(typeof c!=="string"||!c) return false;
+    if(/实际发音|발음|发音/.test(c)) return false;
+    if(/^\s*[\[(（]/.test(c)) return false;  // 以 [/(/（ 开头
+    return true;
+  });
+}
 function splitKoZh(s){
   if(!s) return {ko:"", zh:""};
   const zh = (s.match(/\([^)]+\)/g) || []).map(m=>m.slice(1,-1)).join(" · ");
@@ -1838,9 +1848,9 @@ function renderCard(){
   koLine += `</div>`;
   f += koLine;
   f += `<div class="card-posline">${w.pos||""}</div>`;
-  // 活用型（不再包含发音）
-  if(w.conj && w.conj.length){
-    f += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${w.conj.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+  // 活用型（v30.5：过滤掉"实际发音"项；如果没有真活用型则不显示整行）
+  if(cleanConj(w.conj).length){
+    f += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${cleanConj(w.conj).map(c=>`<span>${c}</span>`).join("")}</div></div>`;
   }
   if(exKo){
     f += `<div class="card-block"><div class="card-block-title">例句</div><div class="card-block-body">${exKo}</div></div>`;
@@ -1876,9 +1886,9 @@ function renderCard(){
   b += koLine2;
   // 词性 + 中文含义（合并显示）
   b += `<div class="card-posline">${w.pos||""} <span class="card-zh-main">· ${w.zh||""}</span></div>`;
-  // 活用型
-  if(w.conj && w.conj.length){
-    b += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${w.conj.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+  // 活用型（v30.5 同步过滤）
+  if(cleanConj(w.conj).length){
+    b += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${cleanConj(w.conj).map(c=>`<span>${c}</span>`).join("")}</div></div>`;
   }
   // 例句（韩文 + 中文翻译）
   if(exKo){
@@ -2700,7 +2710,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v30.4");
+document.title = document.title.replace("TOPIK","TOPIK v30.5");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
