@@ -138,44 +138,54 @@
 
   @media(max-width:600px){.choices{grid-template-columns:1fr}.q-word{font-size:1.8rem}.container{padding:0 10px}}
 
-  /* ============ 🎴 词卡学习（v30.4 独立滚动） ============ */
-  #card-overlay{position:fixed;inset:0;background:#FBF9F5;z-index:999;display:flex;flex-direction:column;overflow:hidden}
-  #card-topbar{flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #EFEAE2;background:#FBF9F5}
-  #card-progress{font-size:.85rem;color:#8A8578;font-weight:700}
-  #card-close-btn{border:none;background:#EFEAE2;color:#6B6659;font-size:.82rem;font-weight:700;padding:7px 16px;border-radius:20px;cursor:pointer}
-  #card-close-btn:hover{background:#E4DED3}
-  #card-colorbar{flex-shrink:0;height:5px;width:100%}
-  /* 3D 翻卡容器：内部独立滚动，footer 不再 sticky 遮挡内容 */
-  #card-stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px 18px;overflow-y:auto;perspective:1600px;-webkit-overflow-scrolling:touch}
-  #card-inner{position:relative;width:100%;max-width:560px;min-height:auto;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);padding-bottom:20px}
-  #card-inner.card-flipped{transform:rotateY(180deg)}
-  .card-face{position:absolute;top:0;left:0;right:0;background:#fff;border-radius:20px;box-shadow:0 2px 8px rgba(40,30,20,.04),0 8px 24px rgba(40,30,20,.06),0 24px 60px rgba(40,30,20,.10);padding:32px 34px;backface-visibility:hidden;-webkit-backface-visibility:hidden;animation:card-fade .35s ease-out}
+  /* ============ 🎴 词卡学习（v30.7 嵌入 panel） ============ */
+  /* 范围选择：仿测试栏 opt-grid 风格 */
+  #panel-card .card-config{padding:6px 0}
+  #panel-card .card-config-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:12px}
+  #panel-card .card-count-input{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:#4A463D}
+  #panel-card .card-count-input input{width:64px;padding:4px 8px;border:1.5px solid #D8CFBC;border-radius:8px;font-size:.88rem;text-align:center;background:#fff;outline:none;font-weight:700;color:#2A2826}
+  #panel-card .card-shuffle-label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:#4A463D;cursor:pointer}
+  #panel-card .card-shuffle-label input{cursor:pointer;width:16px;height:16px}
+  #panel-card .card-empty{padding:60px 0;text-align:center;color:#A8A296;font-size:.95rem}
+  /* 词卡内嵌样式：缩小适配 panel */
+  #card-playing{padding:8px 0 0}
+  #card-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.82rem;color:#8A8578}
+  #card-progress{font-weight:700}
+  #card-back-btn{border:none;background:#EFEAE2;color:#6B6659;font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:16px;cursor:pointer}
+  #card-back-btn:hover{background:#E4DED3}
+  #card-colorbar{height:4px;border-radius:2px;margin-bottom:10px}
+  #card-stage{perspective:1400px;min-height:300px;display:flex;align-items:flex-start;justify-content:center}
+  #card-inner{position:relative;width:100%;max-width:440px;min-height:280px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);padding-bottom:14px}
+  .card-face{position:absolute;top:0;left:0;right:0;background:#fff;border-radius:14px;box-shadow:0 2px 6px rgba(40,30,20,.04),0 6px 18px rgba(40,30,20,.06),0 16px 40px rgba(40,30,20,.08);padding:20px 24px;backface-visibility:hidden;-webkit-backface-visibility:hidden;animation:card-fade .3s ease-out}
   @keyframes card-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   .card-back{transform:rotateY(180deg)}
-  .card-hint{font-size:.78rem;color:#A8A296;text-align:center;margin-bottom:18px}
-  .card-status-row{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
-  .card-status-chip{font-size:.78rem;font-weight:800;padding:3px 12px;border-radius:14px}
-  .card-curve{font-size:.8rem;color:#8A8578;font-weight:600}
-  .card-ko-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
-  .card-ko{font-size:2.6rem;font-weight:800;letter-spacing:.02em;line-height:1.2;color:#2A2826}
-  .card-ko-pron-inline{font-size:.86rem;color:#A8A296;font-weight:600;letter-spacing:.02em;font-family:ui-monospace,Menlo,monospace}
-  .card-posline{font-size:.9rem;color:#98917F;margin-bottom:20px}
+  #card-inner.card-flipped{transform:rotateY(180deg)}
+  #card-inner.card-flipped .card-front{transform:rotateY(-180deg)}
+  #card-inner.card-flipped .card-back{transform:rotateY(0)}
+  .card-hint{font-size:.74rem;color:#A8A296;text-align:center;margin-bottom:12px}
+  .card-status-row{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  .card-status-chip{font-size:.72rem;font-weight:800;padding:2px 10px;border-radius:12px}
+  .card-curve{font-size:.76rem;color:#8A8578;font-weight:600}
+  .card-ko-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .card-ko{font-size:2rem;font-weight:800;letter-spacing:.02em;line-height:1.2;color:#2A2826}
+  .card-ko-pron-inline{font-size:.78rem;color:#A8A296;font-weight:600;letter-spacing:.02em;font-family:ui-monospace,Menlo,monospace}
+  .card-posline{font-size:.84rem;color:#98917F;margin-bottom:14px}
   .card-posline .card-zh-main{color:#4A463D;font-weight:600;margin-left:4px}
-  .card-block{border:1px solid #EFEAE2;border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#FBF9F5}
-  .card-block-title{font-size:.74rem;font-weight:800;color:#B9B2A3;letter-spacing:.05em;margin-bottom:6px;text-transform:uppercase}
-  .card-block-body{font-size:.92rem;line-height:1.7;color:#3D3A33}
-  .card-block-body .zh-trans{color:#8A8578;font-size:.86rem}
-  .card-conj span{display:inline-block;background:#F5F1E8;border-radius:8px;padding:3px 10px;margin:2px 4px 2px 0;font-size:.84rem;font-weight:600;color:#5C5648}
-  .card-colloc span{display:inline-block;background:#EDF1F6;color:#4A6478;border-radius:10px;padding:3px 11px;margin:2px 4px 2px 0;font-size:.82rem;font-weight:600}
-  .card-footer{flex-shrink:0;background:#FBF9F5;padding:14px 20px 22px;display:flex;gap:10px;justify-content:center;border-top:1px solid #EFEAE2}
-  .card-btn{border:none;padding:12px 20px;border-radius:14px;font-size:.92rem;font-weight:700;cursor:pointer;transition:transform .05s}
+  .card-block{border:1px solid #EFEAE2;border-radius:10px;padding:10px 14px;margin-bottom:8px;background:#FBF9F5}
+  .card-block-title{font-size:.7rem;font-weight:800;color:#B9B2A3;letter-spacing:.05em;margin-bottom:5px;text-transform:uppercase}
+  .card-block-body{font-size:.86rem;line-height:1.65;color:#3D3A33}
+  .card-block-body .zh-trans{color:#8A8578;font-size:.82rem}
+  .card-conj span{display:inline-block;background:#F5F1E8;border-radius:7px;padding:2px 9px;margin:2px 3px 2px 0;font-size:.8rem;font-weight:600;color:#5C5648}
+  .card-colloc span{display:inline-block;background:#EDF1F6;color:#4A6478;border-radius:9px;padding:2px 10px;margin:2px 3px 2px 0;font-size:.78rem;font-weight:600}
+  .card-footer{display:flex;gap:8px;justify-content:center;margin-top:14px}
+  .card-btn{border:none;padding:9px 16px;border-radius:11px;font-size:.85rem;font-weight:700;cursor:pointer;transition:transform .05s}
   .card-btn:active{transform:scale(.97)}
-  .card-btn.primary{background:#2A2826;color:#fff;min-width:150px}
+  .card-btn.primary{background:#2A2826;color:#fff;min-width:120px}
   .card-btn.ghost{background:#EFEAE2;color:#6B6659}
   .card-btn.reveal{background:#A6763C;color:#fff}
-  .card-essay{background:#F7F3EC;border-left:3px solid #C9B48C;border-radius:0 10px 10px 0;padding:10px 14px;margin:6px 0;font-size:.88rem;line-height:1.7}
+  .card-essay{background:#F7F3EC;border-left:3px solid #C9B48C;border-radius:0 8px 8px 0;padding:8px 12px;margin:4px 0;font-size:.84rem;line-height:1.6}
   .card-essay .zh-trans{color:#8A8578}
-  .card-back-title{font-size:.84rem;font-weight:800;color:#A6763C;letter-spacing:.05em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+  .card-back-title{font-size:.78rem;font-weight:800;color:#A6763C;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
   /* 范围选择 */
   #card-range-box{background:#F5F1E8;border:1px dashed #D8CFBC;border-radius:12px;padding:10px 14px;margin-top:8px}
   .card-range-opts{display:flex;flex-wrap:wrap;gap:6px}
@@ -203,7 +213,7 @@
   <button class="nav-btn" onclick="showPanel('review')">🧠 复习</button>
   <button class="nav-btn" onclick="showPanel('sync')">🔄 日志同步</button>
   <button class="nav-btn" onclick="showPanel('bank')">📚 词库</button>
-  <button class="nav-btn" onclick="openCardMode('focus')">🎴 词卡</button>
+  <button class="nav-btn" onclick="showPanel('card')">🎴 词卡</button>
 </div></nav>
 
 <div class="container">
@@ -342,26 +352,56 @@
       <div class="opt" data-f="mastered">已掌握</div>
       <div class="opt" data-f="untested">未测过</div>
       <div class="opt" data-f="essay">写作高频</div>
+
+<!-- ============ 🎴 词卡学习（v30.7 嵌入 panel） ============ -->
+<div id="panel-card" class="panel">
+  <div class="card">
+    <h2>🎴 词卡学习</h2>
+    <p style="font-size:.85rem;color:#8A8578;margin-bottom:14px;">主动回忆 → 翻牌看答案 → 科学间隔复习（不影响测试曲线）</p>
+
+    <!-- 配置区：默认显示 -->
+    <div id="card-config">
+      <h3 style="font-size:.92rem;font-weight:800;margin-bottom:10px;color:#4A463D;">选择词卡范围</h3>
+      <div class="opt-grid" id="card-range-opts">
+        <div class="opt sel" data-r="focus">🎯 待巩固+未测</div>
+        <div class="opt" data-r="wrong">❌ 错词本</div>
+        <div class="opt" data-r="untested">🆕 未测过</div>
+        <div class="opt" data-r="mastered">✅ 已掌握</div>
+        <div class="opt" data-r="essay">✍️ 写作高频</div>
+        <div class="opt" data-r="all">📚 全部</div>
+      </div>
+      <div class="card-config-row">
+        <label class="card-shuffle-label"><input type="checkbox" id="card-shuffle"> 🔀 随机顺序（防"背位置"）</label>
+        <div class="card-count-input">本轮 <input type="number" id="card-count" value="20" min="1" max="999"> 词</div>
+      </div>
+      <button class="btn green" style="margin-top:14px;width:100%;" onclick="openCardMode()">▶ 开始浏览</button>
+    </div>
+
+    <!-- 词卡区：开始后显示 -->
+    <div id="card-playing" class="hidden">
+      <div id="card-topbar">
+        <span id="card-progress">词卡 1 / 0</span>
+        <button id="card-back-btn" onclick="finishCardSession()">← 返回配置</button>
+      </div>
+      <div id="card-colorbar"></div>
+      <div id="card-stage">
+        <div id="card-inner">
+          <div class="card-face card-front" id="card-front"></div>
+          <div class="card-face card-back" id="card-back"></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="card-btn ghost" onclick="prevCard()">← 上一个</button>
+        <button class="card-btn reveal" id="card-answer-btn" onclick="toggleCardAnswer()">👁 显示答案</button>
+        <button class="card-btn primary" onclick="nextCard()">下一个 →</button>
+      </div>
+    </div>
+  </div>
+</div>
     </div>
     <div class="word-list" id="word-list"></div>
     <button class="btn" style="margin-top:12px;width:100%;background:var(--red);font-size:.85rem;" onclick="deleteStarWords()">🗑️ 删除导入异常的词条（非内置 + 释义/词性缺失）</button>
-    <button class="btn" style="margin-top:10px;width:100%;background:var(--purple);font-size:.95rem;" onclick="openCardMode('focus')">🎴 词卡学习（先回忆，后看答案）</button>
-    <button class="btn ghost" style="margin-top:6px;width:100%;font-size:.8rem;" onclick="toggleCardRangeBox()">📋 换范围 / 随机顺序</button>
-    <div id="card-range-box" class="hidden" style="margin-top:8px;">
-      <div style="font-size:.78rem;color:#8A8578;margin-bottom:6px;font-weight:700;">选择词卡范围：</div>
-      <div class="card-range-opts">
-        <span class="card-range-opt sel" data-r="focus" onclick="setCardRange(this,'focus')">🎯 待巩固+未测</span>
-        <span class="card-range-opt" data-r="wrong" onclick="setCardRange(this,'wrong')">❌ 错词本</span>
-        <span class="card-range-opt" data-r="untested" onclick="setCardRange(this,'untested')">🆕 未测过</span>
-        <span class="card-range-opt" data-r="mastered" onclick="setCardRange(this,'mastered')">✅ 已掌握</span>
-        <span class="card-range-opt" data-r="essay" onclick="setCardRange(this,'essay')">✍️ 写作高频</span>
-        <span class="card-range-opt" data-r="all" onclick="setCardRange(this,'all')">📚 全部</span>
-      </div>
-      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.8rem;color:#6B6659;cursor:pointer;">
-        <input type="checkbox" id="card-shuffle" style="cursor:pointer;"> 🔀 随机顺序（防"背位置"）
-      </label>
-      <button class="btn green" style="margin-top:8px;width:100%;font-size:.85rem;" onclick="openCardMode(window._cardRange||'focus')">▶ 开始浏览</button>
-    </div>
+
   </div>
 </div>
 
@@ -1366,10 +1406,11 @@ function showPanel(name){
   document.querySelectorAll(".panel").forEach(el=>el.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(el=>el.classList.remove("active"));
   document.getElementById("panel-"+name).classList.add("active");
-  document.querySelectorAll(".nav-btn").forEach(el=>{ if(el.textContent.includes(({lookup:"查词",test:"测试",review:"复习",sync:"日志",bank:"词库"})[name]||"")) el.classList.add("active"); });
+  document.querySelectorAll(".nav-btn").forEach(el=>{ if(el.textContent.includes(({lookup:"查词",test:"测试",review:"复习",sync:"日志",bank:"词库",card:"词卡"})[name]||"")) el.classList.add("active"); });
   if(name==="review") renderReview();
   if(name==="sync") renderStats();
   if(name==="bank") renderWordList();
+  if(name==="card") renderCardConfig();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function updateStats(){
@@ -1761,30 +1802,69 @@ function setCardRange(el, range){
   document.querySelectorAll("#card-range-box .card-range-opt").forEach(o=>o.classList.remove("sel"));
   el.classList.add("sel");
 }
-// 打开词卡：优先级（待巩固>未测>已掌握）+ 音序；可选随机
-function openCardMode(range){
-  cardRange = range || cardRange || "focus";
+// v30.7：词卡改为 panel 内嵌，范围选择从面板顶部读取
+function openCardMode(){
+  // 读取用户当前选中的范围
+  const selOpt = document.querySelector("#card-range-opts .opt.sel");
+  cardRange = selOpt ? selOpt.dataset.r : "focus";
   let list = data.words.slice();
   if(cardRange==="focus") list = list.filter(w=>w.status==="failed"||w.status==="untested");
   else if(cardRange==="wrong") list = list.filter(w=>w.status==="failed");
   else if(cardRange==="untested") list = list.filter(w=>w.status==="untested");
   else if(cardRange==="mastered") list = list.filter(w=>w.status==="mastered");
   else if(cardRange==="essay") list = list.filter(w=>w.essayFreq);
+  // 注意 cardRange==="all" 不过滤
   if(!list.length){ alert("该范围没有词 🎉"); return; }
+  // v30.7 推送逻辑：排除最近 2 次会话浏览过的词（确保每次都有"新词"）
+  const recentWords = new Set();
+  if(data.cardHistory){
+    data.cardHistory.slice(-2).forEach(s=>s.words.forEach(w=>recentWords.add(w)));
+  }
+  let unseen = list.filter(w=>!recentWords.has(w.ko));
+  if(unseen.length < 3){
+    // 几乎都看过了 → 不再排除（防止范围里只看到 0-2 个词）
+    unseen = list;
+  }
+  list = unseen;
+  // 优先级 + 音序
   const koCollator = new Intl.Collator("ko", {sensitivity:"base", numeric:true});
   list.sort((a,b)=>priorityOf(a)-priorityOf(b) || koCollator.compare(a.ko||"", b.ko||""));
+  // 洗牌（如果勾选）
   const shuffle = document.getElementById("card-shuffle") && document.getElementById("card-shuffle").checked;
   if(shuffle){
-    // Fisher-Yates 洗牌（随机模式，防背位置）
     for(let i=list.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [list[i],list[j]]=[list[j],list[i]];
     }
   }
+  // 数量限制
+  const countInput = document.getElementById("card-count");
+  const count = countInput ? Math.max(1, parseInt(countInput.value)||20) : 20;
+  if(count < list.length) list = list.slice(0, count);
+  if(!list.length){ alert("该范围没有词 🎉"); return; }
   cardQueue=list; cardIndex=0; cardShown=false; cardViewed=new Set();
-  document.getElementById("card-overlay").classList.remove("hidden");
-  document.body.style.overflow="hidden";
+  // 切换到词卡视图
+  document.getElementById("card-config").classList.add("hidden");
+  document.getElementById("card-playing").classList.remove("hidden");
   renderCard(); markViewed();
+}
+
+// 范围选择 chip 绑定（点击切换）
+document.querySelectorAll("#card-range-opts .opt").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelectorAll("#card-range-opts .opt").forEach(o=>o.classList.remove("sel"));
+    el.classList.add("sel");
+  });
+});
+
+// 渲染词卡配置（每次切到 panel 时确保配置可见、词卡区隐藏）
+function renderCardConfig(){
+  if(typeof document.getElementById("card-config")==="undefined" || !document.getElementById("card-config")) return;
+  // 只在刚开始（cardIndex 仍是 0，cardQueue 为空）时显示配置
+  if(!cardQueue || cardQueue.length===0){
+    document.getElementById("card-config").classList.remove("hidden");
+    document.getElementById("card-playing").classList.add("hidden");
+  }
 }
 // 记忆曲线阶段文字（科学展示：已完成 X/10，下一阶段 X 到期日）
 function curveText(w){
@@ -1941,7 +2021,7 @@ function toggleCardAnswer(){
 }
 function nextCard(){
   if(cardIndex < cardQueue.length-1){ cardIndex++; cardShown=false; renderCard(); markViewed(); }
-  else closeCardMode();
+  else finishCardSession();
 }
 function prevCard(){ if(cardIndex>0){ cardIndex--; cardShown=false; renderCard(); } }
 // 当日浏览计数（不影响测试曲线，仅正反馈）
@@ -1954,15 +2034,26 @@ function markViewed(){
   data.viewSession.count++;
   saveData(); updateStats();
 }
-function closeCardMode(){
-  document.getElementById("card-overlay").classList.add("hidden");
-  document.body.style.overflow="";
+// 完成词卡会话：保存浏览历史 + 弹统计 + 回到配置界面
+function finishCardSession(){
   if(cardViewed.size){
+    if(!data.cardHistory) data.cardHistory=[];
+    data.cardHistory.push({
+      date: today(),
+      words: cardQueue.map(w=>w.ko)
+    });
+    // 只保留最近 10 次会话（避免 localStorage 无限增长）
+    if(data.cardHistory.length > 10) data.cardHistory = data.cardHistory.slice(-10);
+    saveData();
     const t=today();
     const total = (data.viewSession && data.viewSession.date===t) ? data.viewSession.count : cardViewed.size;
     const reviewed = dueWords().length;
-    alert(`🎉 本次浏览 ${cardViewed.size} 词！\n📚 今日累计学习 ${reviewed + total} 词（复习 ${reviewed} + 浏览 ${total}）`);
+    alert(`🎉 本次浏览 ${cardViewed.size} 词！\n📚 今日累计学习 ${reviewed + total} 词（复习 ${reviewed} + 浏览 ${total}）\n💡 下次进入将优先推你没看过的词`);
   }
+  // 回到配置界面
+  document.getElementById("card-config").classList.remove("hidden");
+  document.getElementById("card-playing").classList.add("hidden");
+  cardQueue=[]; cardIndex=0; cardShown=false; cardViewed=new Set();
 }
 // 键盘快捷键：→/空格=下一个、←=上一个、Esc=关闭、空格(未显示答案时)=显示答案
 document.addEventListener("keydown", e=>{
@@ -2714,7 +2805,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v30.6");
+document.title = document.title.replace("TOPIK","TOPIK v30.7");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
@@ -2744,25 +2835,5 @@ updateStats();
   <div style="background:#fff;border-radius:16px;padding:24px;max-height:85vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.2);width:100%;"></div>
 </div>
 
-<!-- 🎴 词卡学习覆盖层（v30.2 3D 翻卡） -->
-<div id="card-overlay" class="hidden">
-  <div id="card-topbar">
-    <span id="card-progress">词卡 1 / 0</span>
-    <button id="card-close-btn" onclick="closeCardMode()">✕ 关闭</button>
-  </div>
-  <div id="card-colorbar"></div>
-  <div id="card-stage">
-    <div id="card-inner">
-      <div class="card-face card-front" id="card-front"></div>
-      <div class="card-face card-back" id="card-back"></div>
-    </div>
-  </div>
-  <div class="card-footer">
-    <button class="card-btn ghost" onclick="prevCard()">← 上一个</button>
-    <button class="card-btn reveal" id="card-answer-btn" onclick="toggleCardAnswer()">👁 显示答案</button>
-    <button class="card-btn primary" onclick="nextCard()">下一个 →</button>
-  </div>
-</div>
 
-</body>
 </html>
