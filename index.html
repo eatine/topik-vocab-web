@@ -138,8 +138,7 @@
 
   @media(max-width:600px){.choices{grid-template-columns:1fr}.q-word{font-size:1.8rem}.container{padding:0 10px}}
 
-  /* ============ 🎴 词卡学习（v30.7 嵌入 panel） ============ */
-  /* 范围选择：仿测试栏 opt-grid 风格 */
+  /* ============ 🎴 词卡学习（v30.8 重设计：弱化视觉 + 正面仅回忆线索） ============ */
   #panel-card .card-config{padding:6px 0}
   #panel-card .card-config-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:12px}
   #panel-card .card-count-input{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:#4A463D}
@@ -147,50 +146,104 @@
   #panel-card .card-shuffle-label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:#4A463D;cursor:pointer}
   #panel-card .card-shuffle-label input{cursor:pointer;width:16px;height:16px}
   #panel-card .card-empty{padding:60px 0;text-align:center;color:#A8A296;font-size:.95rem}
-  /* 词卡内嵌样式：缩小适配 panel */
-  #card-playing{padding:8px 0 0}
-  #card-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.82rem;color:#8A8578}
+
+  /* 词卡视图：与 panel 融合，不做突出卡片 */
+  #card-playing{padding:14px 0 0}
+  #card-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:.82rem;color:#8A8578}
   #card-progress{font-weight:700}
-  #card-back-btn{border:none;background:#EFEAE2;color:#6B6659;font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:16px;cursor:pointer}
-  #card-back-btn:hover{background:#E4DED3}
-  #card-colorbar{height:4px;border-radius:2px;margin-bottom:10px}
-  #card-stage{perspective:1400px;min-height:300px;display:flex;align-items:flex-start;justify-content:center}
-  #card-inner{position:relative;width:100%;max-width:440px;min-height:280px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);padding-bottom:14px}
-  .card-face{position:absolute;top:0;left:0;right:0;background:#fff;border-radius:14px;box-shadow:0 2px 6px rgba(40,30,20,.04),0 6px 18px rgba(40,30,20,.06),0 16px 40px rgba(40,30,20,.08);padding:20px 24px;backface-visibility:hidden;-webkit-backface-visibility:hidden;animation:card-fade .3s ease-out}
-  @keyframes card-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-  .card-back{transform:rotateY(180deg)}
+  #card-back-btn{border:1.5px solid #D8CFBC;background:#fff;color:#6B6659;font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:16px;cursor:pointer}
+  #card-back-btn:hover{background:#F5F1E8;border-color:#A6763C}
+  #card-colorbar{height:3px;border-radius:2px;margin-bottom:14px;opacity:.85}
+
+  /* 3D 翻牌舞台：正面 relative 撑高，背面 absolute 叠在其上 */
+  #card-stage{perspective:1400px;width:100%;display:flex;justify-content:center;margin-bottom:16px}
+  #card-inner{position:relative;width:100%;max-width:520px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1)}
   #card-inner.card-flipped{transform:rotateY(180deg)}
+
+  .card-face{
+    width:100%;
+    background:#fff;
+    border:1.5px solid #EFEAE2;
+    border-radius:14px;
+    padding:22px 24px;
+    box-shadow:0 1px 2px rgba(40,30,20,.03);
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    animation:card-fade .25s ease-out;
+  }
+  @keyframes card-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .card-back{
+    position:absolute;
+    top:0;left:0;
+    transform:rotateY(180deg);
+    max-height:65vh;
+    overflow-y:auto;
+  }
   #card-inner.card-flipped .card-front{transform:rotateY(-180deg)}
-  #card-inner.card-flipped .card-back{transform:rotateY(0)}
-  .card-hint{font-size:.74rem;color:#A8A296;text-align:center;margin-bottom:12px}
-  .card-status-row{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-  .card-status-chip{font-size:.72rem;font-weight:800;padding:2px 10px;border-radius:12px}
-  .card-curve{font-size:.76rem;color:#8A8578;font-weight:600}
-  .card-ko-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
-  .card-ko{font-size:2rem;font-weight:800;letter-spacing:.02em;line-height:1.2;color:#2A2826}
+
+  /* 正面：极简回忆线索 */
+  .card-status-row{display:flex;gap:6px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  .card-status-chip{font-size:.7rem;font-weight:800;padding:3px 10px;border-radius:12px;letter-spacing:.02em}
+  .card-curve{font-size:.74rem;color:#98917F;font-weight:600}
+  .card-ko-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .card-ko{font-size:2.2rem;font-weight:800;letter-spacing:.02em;line-height:1.2;color:#2A2826}
   .card-ko-pron-inline{font-size:.78rem;color:#A8A296;font-weight:600;letter-spacing:.02em;font-family:ui-monospace,Menlo,monospace}
-  .card-posline{font-size:.84rem;color:#98917F;margin-bottom:14px}
-  .card-posline .card-zh-main{color:#4A463D;font-weight:600;margin-left:4px}
-  .card-block{border:1px solid #EFEAE2;border-radius:10px;padding:10px 14px;margin-bottom:8px;background:#FBF9F5}
-  .card-block-title{font-size:.7rem;font-weight:800;color:#B9B2A3;letter-spacing:.05em;margin-bottom:5px;text-transform:uppercase}
-  .card-block-body{font-size:.86rem;line-height:1.65;color:#3D3A33}
+  .card-posline{font-size:.86rem;color:#98917F;margin-bottom:18px}
+  .card-prompt{
+    text-align:center;
+    color:#A8A296;
+    font-size:.78rem;
+    padding:14px 0 6px;
+    border-top:1px dashed #EFEAE2;
+    margin-top:auto;
+  }
+  .card-front-inner{display:flex;flex-direction:column;min-height:200px}
+
+  /* 背面：完整词卡（弱化视觉重量） */
+  .card-back-title{font-size:.74rem;font-weight:800;color:#A6763C;letter-spacing:.06em;margin-bottom:14px;display:flex;align-items:center;gap:6px;text-transform:uppercase}
+  .card-back .card-posline{margin-bottom:14px}
+  .card-back .card-zh-main{color:#4A463D;font-weight:700;margin-left:4px}
+  .card-block{border-top:1px solid #F0EBE0;padding:10px 0;margin-bottom:0}
+  .card-block-title{font-size:.68rem;font-weight:800;color:#B9B2A3;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase}
+  .card-block-body{font-size:.86rem;line-height:1.7;color:#3D3A33}
   .card-block-body .zh-trans{color:#8A8578;font-size:.82rem}
-  .card-conj span{display:inline-block;background:#F5F1E8;border-radius:7px;padding:2px 9px;margin:2px 3px 2px 0;font-size:.8rem;font-weight:600;color:#5C5648}
-  .card-colloc span{display:inline-block;background:#EDF1F6;color:#4A6478;border-radius:9px;padding:2px 10px;margin:2px 3px 2px 0;font-size:.78rem;font-weight:600}
-  .card-footer{display:flex;gap:8px;justify-content:center;margin-top:14px}
-  .card-btn{border:none;padding:9px 16px;border-radius:11px;font-size:.85rem;font-weight:700;cursor:pointer;transition:transform .05s}
+  .card-conj span{display:inline-block;background:#F5F1E8;border-radius:6px;padding:2px 8px;margin:2px 3px 2px 0;font-size:.8rem;font-weight:600;color:#5C5648}
+  .card-colloc span{display:inline-block;background:#F1F4F7;color:#4A6478;border-radius:8px;padding:2px 10px;margin:2px 3px 2px 0;font-size:.78rem;font-weight:600}
+
+  /* 底部按钮组：固定显示，不依赖卡片高度 */
+  .card-footer{display:flex;gap:8px;justify-content:center;padding:8px 0 0}
+  .card-btn{
+    border:none;
+    padding:9px 16px;
+    border-radius:11px;
+    font-size:.85rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform .05s, box-shadow .15s;
+    font-family:inherit;
+  }
   .card-btn:active{transform:scale(.97)}
-  .card-btn.primary{background:#2A2826;color:#fff;min-width:120px}
-  .card-btn.ghost{background:#EFEAE2;color:#6B6659}
-  .card-btn.reveal{background:#A6763C;color:#fff}
-  .card-essay{background:#F7F3EC;border-left:3px solid #C9B48C;border-radius:0 8px 8px 0;padding:8px 12px;margin:4px 0;font-size:.84rem;line-height:1.6}
+  .card-btn.primary{background:#2A2826;color:#fff;min-width:96px}
+  .card-btn.primary:hover{background:#1A1816}
+  .card-btn.ghost{background:#fff;color:#6B6659;border:1.5px solid #D8CFBC;min-width:88px}
+  .card-btn.ghost:hover{border-color:#A8A296;background:#FBF9F5}
+  .card-btn.ghost:disabled{opacity:.4;cursor:not-allowed}
+  .card-btn.reveal{background:#A6763C;color:#fff;min-width:120px;box-shadow:0 1px 3px rgba(166,118,60,.25)}
+  .card-btn.reveal:hover{background:#8E6231}
+  .card-essay{background:#FBF7EE;border-left:2.5px solid #C9B48C;border-radius:0 6px 6px 0;padding:6px 10px;margin:4px 0;font-size:.84rem;line-height:1.6}
   .card-essay .zh-trans{color:#8A8578}
-  .card-back-title{font-size:.78rem;font-weight:800;color:#A6763C;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
   /* 范围选择 */
   #card-range-box{background:#F5F1E8;border:1px dashed #D8CFBC;border-radius:12px;padding:10px 14px;margin-top:8px}
   .card-range-opts{display:flex;flex-wrap:wrap;gap:6px}
   .card-range-opt{border:1.5px solid #D8CFBC;background:#fff;border-radius:10px;padding:5px 12px;font-size:.8rem;font-weight:600;color:#6B6659;cursor:pointer}
   .card-range-opt.sel{border-color:#A6763C;background:#A6763C;color:#fff}
+
+  /* 状态 chip 颜色统一：复用项目 chip 体系 */
+  .card-status-chip.status-failed{background:#F8E5DC;color:#B85434}
+  .card-status-chip.status-untested{background:#E8EEF8;color:#4A6FB0}
+  .card-status-chip.status-mastered{background:#E1EDDF;color:#5A8463}
+  .card-status-chip.status-learning{background:#F2EBDA;color:#9C7F3E}
 </style>
 </head>
 <body>
@@ -1884,11 +1937,14 @@ function renderCard(){
   document.getElementById("card-progress").textContent = `词卡 ${cardIndex+1} / ${cardQueue.length}`;
   const color = CARD_COLORS[w.status] || "#B8B5B0";
   const label = CARD_LABELS[w.status] || "其他";
+  // 状态 chip 用项目 chip 体系
+  const statusClass = "status-" + (w.status || "learning");
   document.getElementById("card-colorbar").style.background = color;
   document.getElementById("card-answer-btn").textContent = cardShown ? "🙈 隐藏答案" : "👁 显示答案";
   document.getElementById("card-answer-btn").className = "card-btn " + (cardShown ? "ghost" : "reveal");
-  const front = document.getElementById("card-front");
-  const back = document.getElementById("card-back");
+  // 上一个按钮的禁用状态
+  const prevBtn = document.querySelector(".card-footer .card-btn.ghost");
+  if(prevBtn) prevBtn.disabled = (cardIndex === 0);
   // 解析韩文/中文分离
   const exampleRaw = w.example || "";
   const exMatch = exampleRaw.match(/^([^（(]+)/);
@@ -1898,11 +1954,12 @@ function renderCard(){
   const ant = splitKoZh(w.ant);
   const cog = splitKoZh(w.cognate);
   const essayArr = Array.isArray(w.essay) ? w.essay.slice(0,2) : [];
-  // ========== 正面（韩文） ==========
-  let f = `<div class="card-status-row">
-    <span class="card-status-chip" style="background:${color}20;color:${color};">${label}</span>
-    <span class="card-curve">${curveText(w)}</span>
-  </div>`;
+  // ========== 正面：极简回忆线索（韩文 + 词性 + 状态；隐藏中文释义等所有答案信息） ==========
+  let f = `<div class="card-front-inner">
+    <div class="card-status-row">
+      <span class="card-status-chip ${statusClass}">${label}</span>
+      <span class="card-curve">${curveText(w)}</span>
+    </div>`;
   // 词条 + 内联发音（仅音变时显示）
   let koLine = `<div class="card-ko-row"><span class="card-ko">${w.ko}</span>`;
   if(w.pron){
@@ -1912,33 +1969,14 @@ function renderCard(){
   koLine += `</div>`;
   f += koLine;
   f += `<div class="card-posline">${w.pos||""}</div>`;
-  // 活用型（v30.5：过滤掉"实际发音"项；如果没有真活用型则不显示整行）
-  if(cleanConj(w.conj).length){
-    f += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${cleanConj(w.conj).map(c=>`<span>${c}</span>`).join("")}</div></div>`;
-  }
-  if(exKo){
-    f += `<div class="card-block"><div class="card-block-title">例句</div><div class="card-block-body">${exKo}</div></div>`;
-  }
-  if(w.colloc && w.colloc.length){
-    f += `<div class="card-block"><div class="card-block-title">常见搭配</div><div class="card-block-body card-colloc">${w.colloc.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
-  }
-  if(syn.ko) f += `<div class="card-block"><div class="card-block-title">近义词</div><div class="card-block-body">${syn.ko}</div></div>`;
-  if(ant.ko) f += `<div class="card-block"><div class="card-block-title">反义词</div><div class="card-block-body">${ant.ko}</div></div>`;
-  if(cog.ko) f += `<div class="card-block"><div class="card-block-title">同源词</div><div class="card-block-body">${cog.ko}</div></div>`;
-  if(w.hanja && !w.hanja.includes("固有")) f += `<div class="card-block"><div class="card-block-title">汉字词源</div><div class="card-block-body">${w.hanja}</div></div>`;
-  if(w.essayFreq && essayArr.length){
-    f += `<div class="card-block"><div class="card-block-title">✍️ 大作文句式</div><div class="card-block-body">`;
-    essayArr.forEach(e=>{
-      const m = e.match(/^(\[[^\]]+\][^（(]*)/);
-      f += `<div class="card-essay">${m?m[1]:e}</div>`;
-    });
-    f += `</div></div>`;
-  }
-  // ========== 背面：正面内容 + 中文翻译（完整版） ==========
+  // 底部提示
+  f += `<div class="card-prompt">👁 尝试回忆中文含义，再点"显示答案"</div>
+  </div>`;
+  // ========== 背面：完整词卡（韩中对照） ==========
   let b = `<div class="card-back-title">📖 完整词卡（韩中对照）</div>`;
   // 状态行
   b += `<div class="card-status-row">
-    <span class="card-status-chip" style="background:${color}20;color:${color};">${label}</span>
+    <span class="card-status-chip ${statusClass}">${label}</span>
     <span class="card-curve">${curveText(w)}</span>
   </div>`;
   // 词条 + 内联发音
@@ -1989,9 +2027,18 @@ function renderCard(){
     });
     b += `</div></div>`;
   }
-  front.innerHTML = f;
-  back.innerHTML = b;
-  document.getElementById("card-inner").classList.toggle("card-flipped", cardShown);
+  document.getElementById("card-front").innerHTML = f;
+  document.getElementById("card-back").innerHTML = b;
+  // 同步设置 inner 高度 = 正面内容高度，让背面绝对定位后能精准对齐
+  const inner = document.getElementById("card-inner");
+  inner.classList.toggle("card-flipped", cardShown);
+  // 下一帧测量正面高度并应用到 inner
+  requestAnimationFrame(()=>{
+    const frontEl = document.getElementById("card-front");
+    if(frontEl){
+      inner.style.minHeight = frontEl.offsetHeight + "px";
+    }
+  });
 }
 function toggleCardAnswer(){
   cardShown=!cardShown;
@@ -2002,6 +2049,9 @@ function toggleCardAnswer(){
 function nextCard(){
   if(cardIndex < cardQueue.length-1){ cardIndex++; cardShown=false; renderCard(); markViewed(); }
   else finishCardSession();
+}
+function prevCard(){
+  if(cardIndex>0){ cardIndex--; cardShown=false; renderCard(); markViewed(); }
 }
 function prevCard(){ if(cardIndex>0){ cardIndex--; cardShown=false; renderCard(); } }
 // 当日浏览计数（不影响测试曲线，仅正反馈）
@@ -2037,8 +2087,10 @@ function finishCardSession(){
 }
 // 键盘快捷键：→/空格=下一个、←=上一个、Esc=关闭、空格(未显示答案时)=显示答案
 document.addEventListener("keydown", e=>{
-  if(document.getElementById("card-overlay").classList.contains("hidden")) return;
-  if(e.key==="Escape") closeCardMode();
+  // 只在词卡视图激活时响应（v30.8：内嵌 panel）
+  const playing = document.getElementById("card-playing");
+  if(!playing || playing.classList.contains("hidden")) return;
+  if(e.key==="Escape") finishCardSession();
   else if(e.key==="ArrowRight") nextCard();
   else if(e.key==="ArrowLeft") prevCard();
   else if(e.code==="Space" || e.key===" "){
