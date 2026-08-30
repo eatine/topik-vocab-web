@@ -1,7 +1,6 @@
-// Service Worker：TOPIK 词汇系统 v6
-// 关键增强：激活时强制刷新所有客户端，确保 v15+ 的 dueWords 修正生效
-// 这解决"用户刷新页面但 SW 还跑老 HTML"的难题
-const CACHE_NAME = 'topik-vocab-v6';
+// Service Worker：TOPIK 词汇系统 v7
+// v7：升级缓存名强制所有旧 SW 客户端失效 + 重载，确保 v30.9 扁平化词卡生效
+const CACHE_NAME = 'topik-vocab-v7';
 const ASSETS = [
   './manifest.webmanifest',
   './icon-192.png',
