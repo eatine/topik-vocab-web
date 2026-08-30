@@ -2810,10 +2810,14 @@ function closeWordDetail(){
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
 document.title = document.title.replace("TOPIK","TOPIK v30.9.1");
+// 错误捕获：把任何 JS 错误显示到页面顶部（调试用，部署版可保留）
+window.addEventListener("error", (e)=>{
+  console.error("[JS ERROR]", e.error || e.message);
+});
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("sw.js").catch(()=>{ /* 预览环境可能不支持，静默忽略 */ });
+    navigator.serviceWorker.register("sw.js", { updateViaCache: 'none' }).catch(()=>{ /* 预览环境可能不支持，静默忽略 */ });
   });
 }
 // 存储状态提示：仅当 localStorage 不可用或从未保存过时展示
