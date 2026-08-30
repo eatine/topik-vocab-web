@@ -248,11 +248,6 @@
 
 <div class="container">
 
-<!-- 诊断横幅（v30.9.4：强制显示，验证 HTML 加载；下次清理后可移除） -->
-<div id="diag-banner" style="background:#FCD34D;color:#1F2937;padding:12px 18px;border-radius:10px;margin:14px 0;font-weight:700;font-size:.9rem;border:2px solid #B45309;">
-  🔧 诊断横幅 v30.9.4 · 如果你看到这条黄底横幅，说明 HTML 加载正常。请同时告诉我：(1) 你能否看到 nav 下方的"🔍 查词入库"标题？(2) DevTools Console 是否有红色错误？
-</div>
-
 <!-- ============ 查词 ============ -->
 <div id="panel-lookup" class="panel active">
   <div class="card">
@@ -392,7 +387,7 @@
       <button class="btn ghost" onclick="exportBrokenConj()">📤 导出活用型异常词</button>
       <button class="btn ghost" onclick="exportRecentImports()">📤 导出格式不统一词</button>
     </div>
-    <div id="word-list" style="display:grid;gap:8px;"></div>
+    <div id="word-list" style="display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));"></div>
   </div>
 </div>
 
@@ -2835,7 +2830,7 @@ function closeWordDetail(){
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
 document.title = document.title.replace("TOPIK","TOPIK v30.9.1");
-// 错误捕获：把任何 JS 错误显示到页面顶部（调试用，部署版可保留）
+// 错误捕获：把任何 JS 错误显示到 console（调试用，部署版保留）
 window.addEventListener("error", (e)=>{
   console.error("[JS ERROR]", e.error || e.message);
 });
