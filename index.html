@@ -187,6 +187,9 @@
     <div class="st"><div class="n" id="st-today">0</div><div class="l">今日复习</div></div>
     <div class="st"><div class="n" id="st-view">0</div><div class="l">今日浏览</div></div>
   </div>
+  <div style="text-align:center;margin-top:14px;">
+    <button class="btn" style="background:var(--purple);color:#fff;font-weight:800;padding:11px 28px;border-radius:24px;font-size:.92rem;box-shadow:0 4px 14px rgba(124,77,255,.25);" onclick="openCardMode('focus')">🎴 开始词卡学习（先回忆后看答案）</button>
+  </div>
 </div>
 
 <nav><div class="nav-inner">
@@ -2628,7 +2631,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v30");
+document.title = document.title.replace("TOPIK","TOPIK v30.1");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
