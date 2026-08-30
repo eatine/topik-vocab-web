@@ -1,5 +1,6 @@
 // Service Worker：TOPIK 词汇系统 v7
 // v7：升级缓存名强制所有旧 SW 客户端失效 + 重载，确保 v30.9 扁平化词卡生效
+// 注意：v7 不再在 activate 中自动 client.navigate，避免反复重载；改由 HTML ?v=xxx 触发
 const CACHE_NAME = 'topik-vocab-v7';
 const ASSETS = [
   './manifest.webmanifest',
@@ -15,19 +16,13 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 激活：清理所有旧缓存 + 强制刷新所有打开的标签页/PWA
+// 激活：清理所有旧缓存 + 接管客户端（不强制重载）
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
-      // 立即控制所有客户端
+      // 立即控制所有客户端（但不重载，等用户下次手动刷新）
       .then(() => self.clients.claim())
-      // 强制让所有打开此 PWA 的客户端立即重新加载（确保看到新 HTML）
-      .then(() => self.clients.matchAll({ type: 'window' }).then(clients => {
-        clients.forEach(client => {
-          try { client.navigate(client.url); } catch(e) {}
-        });
-      }))
   );
 });
 
