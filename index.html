@@ -138,16 +138,16 @@
 
   @media(max-width:600px){.choices{grid-template-columns:1fr}.q-word{font-size:1.8rem}.container{padding:0 10px}}
 
-  /* ============ 🎴 词卡学习（v30.2 3D 翻卡） ============ */
-  #card-overlay{position:fixed;inset:0;background:#FBF9F5;z-index:999;display:flex;flex-direction:column;overflow-y:auto}
-  #card-topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #EFEAE2}
+  /* ============ 🎴 词卡学习（v30.4 独立滚动） ============ */
+  #card-overlay{position:fixed;inset:0;background:#FBF9F5;z-index:999;display:flex;flex-direction:column;overflow:hidden}
+  #card-topbar{flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #EFEAE2;background:#FBF9F5}
   #card-progress{font-size:.85rem;color:#8A8578;font-weight:700}
   #card-close-btn{border:none;background:#EFEAE2;color:#6B6659;font-size:.82rem;font-weight:700;padding:7px 16px;border-radius:20px;cursor:pointer}
   #card-close-btn:hover{background:#E4DED3}
-  #card-colorbar{height:5px;width:100%}
-  /* 3D 翻卡容器 */
-  #card-stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px 20px;perspective:1600px}
-  #card-inner{position:relative;width:100%;max-width:560px;min-height:520px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1)}
+  #card-colorbar{flex-shrink:0;height:5px;width:100%}
+  /* 3D 翻卡容器：内部独立滚动，footer 不再 sticky 遮挡内容 */
+  #card-stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px 18px;overflow-y:auto;perspective:1600px;-webkit-overflow-scrolling:touch}
+  #card-inner{position:relative;width:100%;max-width:560px;min-height:auto;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);padding-bottom:20px}
   #card-inner.card-flipped{transform:rotateY(180deg)}
   .card-face{position:absolute;top:0;left:0;right:0;background:#fff;border-radius:20px;box-shadow:0 2px 8px rgba(40,30,20,.04),0 8px 24px rgba(40,30,20,.06),0 24px 60px rgba(40,30,20,.10);padding:32px 34px;backface-visibility:hidden;-webkit-backface-visibility:hidden;animation:card-fade .35s ease-out}
   @keyframes card-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -167,7 +167,7 @@
   .card-block-body .zh-trans{color:#8A8578;font-size:.86rem}
   .card-conj span{display:inline-block;background:#F5F1E8;border-radius:8px;padding:3px 10px;margin:2px 4px 2px 0;font-size:.84rem;font-weight:600;color:#5C5648}
   .card-colloc span{display:inline-block;background:#EDF1F6;color:#4A6478;border-radius:10px;padding:3px 11px;margin:2px 4px 2px 0;font-size:.82rem;font-weight:600}
-  .card-footer{position:sticky;bottom:0;background:linear-gradient(to top,#FBF9F5 70%,rgba(251,249,245,0));padding:14px 20px 22px;display:flex;gap:10px;justify-content:center}
+  .card-footer{flex-shrink:0;background:#FBF9F5;padding:14px 20px 22px;display:flex;gap:10px;justify-content:center;border-top:1px solid #EFEAE2}
   .card-btn{border:none;padding:12px 20px;border-radius:14px;font-size:.92rem;font-weight:700;cursor:pointer;transition:transform .05s}
   .card-btn:active{transform:scale(.97)}
   .card-btn.primary{background:#2A2826;color:#fff;min-width:150px}
@@ -2700,7 +2700,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v30.3");
+document.title = document.title.replace("TOPIK","TOPIK v30.4");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
