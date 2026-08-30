@@ -353,24 +353,7 @@
       <div class="opt" data-f="untested">未测过</div>
       <div class="opt" data-f="essay">写作高频</div>
 
-<!-- ============ 🎴 词卡学习（v30.7 嵌入 panel） ============ -->
-<div id="panel-card" class="panel">
-  <div class="card">
-    <h2>🎴 词卡学习</h2>
-    <p style="font-size:.85rem;color:#8A8578;margin-bottom:14px;">主动回忆 → 翻牌看答案 → 科学间隔复习（不影响测试曲线）</p>
-
-    <!-- 配置区：默认显示 -->
-    <div id="card-config">
-      <h3 style="font-size:.92rem;font-weight:800;margin-bottom:10px;color:#4A463D;">选择词卡范围</h3>
-      <div class="opt-grid" id="card-range-opts">
-        <div class="opt sel" data-r="focus">🎯 待巩固+未测</div>
-        <div class="opt" data-r="wrong">❌ 错词本</div>
-        <div class="opt" data-r="untested">🆕 未测过</div>
-        <div class="opt" data-r="mastered">✅ 已掌握</div>
-        <div class="opt" data-r="essay">✍️ 写作高频</div>
-        <div class="opt" data-r="all">📚 全部</div>
-      </div>
-      <div class="card-config-row">
+<div class="card-config-row">
         <label class="card-shuffle-label"><input type="checkbox" id="card-shuffle"> 🔀 随机顺序（防"背位置"）</label>
         <div class="card-count-input">本轮 <input type="number" id="card-count" value="20" min="1" max="999"> 词</div>
       </div>
@@ -389,7 +372,26 @@
           <div class="card-face card-front" id="card-front"></div>
           <div class="card-face card-back" id="card-back"></div>
         </div>
+      
+<!-- ============ 🎴 词卡学习（v30.7 嵌入 panel） ============ -->
+<div id="panel-card" class="panel">
+  <div class="card">
+    <h2>🎴 词卡学习</h2>
+    <p style="font-size:.85rem;color:#8A8578;margin-bottom:14px;">主动回忆 → 翻牌看答案 → 科学间隔复习（不影响测试曲线）</p>
+
+    <!-- 配置区：默认显示 -->
+    <div id="card-config">
+      <h3 style="font-size:.92rem;font-weight:800;margin-bottom:10px;color:#4A463D;">选择词卡范围</h3>
+      <div class="opt-grid" id="card-range-opts">
+        <div class="opt sel" data-r="focus">🎯 待巩固+未测</div>
+        <div class="opt" data-r="wrong">❌ 错词本</div>
+        <div class="opt" data-r="untested">🆕 未测过</div>
+        <div class="opt" data-r="mastered">✅ 已掌握</div>
+        <div class="opt" data-r="essay">✍️ 写作高频</div>
+        <div class="opt" data-r="all">📚 全部</div>
       </div>
+      
+</div>
       <div class="card-footer">
         <button class="card-btn ghost" onclick="prevCard()">← 上一个</button>
         <button class="card-btn reveal" id="card-answer-btn" onclick="toggleCardAnswer()">👁 显示答案</button>
@@ -2805,7 +2807,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v30.7");
+document.title = document.title.replace("TOPIK","TOPIK v30.7.1");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
