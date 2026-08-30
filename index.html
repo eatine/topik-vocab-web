@@ -1860,18 +1860,58 @@ function renderCard(){
     });
     f += `</div></div>`;
   }
-  // ========== 背面（中文） ==========
-  let b = `<div class="card-back-title">📖 答案（中文释义）</div>`;
-  if(w.zh) b += `<div class="card-block"><div class="card-block-title">中文含义</div><div class="card-block-body" style="font-size:1.05rem;font-weight:600;">${w.zh}</div></div>`;
-  if(exZh) b += `<div class="card-block"><div class="card-block-title">例句翻译</div><div class="card-block-body zh-trans">${exZh}</div></div>`;
-  if(syn.zh) b += `<div class="card-block"><div class="card-block-title">近义辨析</div><div class="card-block-body">${syn.zh}</div></div>`;
-  if(ant.zh) b += `<div class="card-block"><div class="card-block-title">反义</div><div class="card-block-body">${ant.zh}</div></div>`;
-  if(cog.zh) b += `<div class="card-block"><div class="card-block-title">同源</div><div class="card-block-body">${cog.zh}</div></div>`;
+  // ========== 背面：正面内容 + 中文翻译（完整版） ==========
+  let b = `<div class="card-back-title">📖 完整词卡（韩中对照）</div>`;
+  // 状态行
+  b += `<div class="card-status-row">
+    <span class="card-status-chip" style="background:${color}20;color:${color};">${label}</span>
+    <span class="card-curve">${curveText(w)}</span>
+  </div>`;
+  // 词条 + 内联发音
+  let koLine2 = `<div class="card-ko-row"><span class="card-ko">${w.ko}</span>`;
+  if(w.pron){
+    koLine2 += `<span class="card-ko-pron-inline">[${w.pron.replace(/[\[\]]/g,"")}]</span>`;
+  }
+  koLine2 += `</div>`;
+  b += koLine2;
+  // 词性 + 中文含义（合并显示）
+  b += `<div class="card-posline">${w.pos||""} <span class="card-zh-main">· ${w.zh||""}</span></div>`;
+  // 活用型
+  if(w.conj && w.conj.length){
+    b += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${w.conj.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+  }
+  // 例句（韩文 + 中文翻译）
+  if(exKo){
+    b += `<div class="card-block"><div class="card-block-title">例句</div><div class="card-block-body">${exKo}${exZh?`<br><span class="zh-trans">${exZh}</span>`:""}</div></div>`;
+  }
+  // 搭配
+  if(w.colloc && w.colloc.length){
+    b += `<div class="card-block"><div class="card-block-title">常见搭配</div><div class="card-block-body card-colloc">${w.colloc.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+  }
+  // 近义（韩文 + 中文合并）
+  if(syn.ko || syn.zh){
+    b += `<div class="card-block"><div class="card-block-title">近义词</div><div class="card-block-body">${syn.ko}${syn.zh?`<br><span class="zh-trans">${syn.zh}</span>`:""}</div></div>`;
+  }
+  // 反义
+  if(ant.ko || ant.zh){
+    b += `<div class="card-block"><div class="card-block-title">反义词</div><div class="card-block-body">${ant.ko}${ant.zh?`<br><span class="zh-trans">${ant.zh}</span>`:""}</div></div>`;
+  }
+  // 同源
+  if(cog.ko || cog.zh){
+    b += `<div class="card-block"><div class="card-block-title">同源词</div><div class="card-block-body">${cog.ko}${cog.zh?`<br><span class="zh-trans">${cog.zh}</span>`:""}</div></div>`;
+  }
+  // 汉字词源
+  if(w.hanja && !w.hanja.includes("固有")){
+    b += `<div class="card-block"><div class="card-block-title">汉字词源</div><div class="card-block-body">${w.hanja}</div></div>`;
+  }
+  // 作文（韩文 + 中文翻译）
   if(w.essayFreq && essayArr.length){
-    b += `<div class="card-block"><div class="card-block-title">✍️ 作文句式翻译</div><div class="card-block-body">`;
+    b += `<div class="card-block"><div class="card-block-title">✍️ 大作文句式</div><div class="card-block-body">`;
     essayArr.forEach(e=>{
+      const km = e.match(/^(\[[^\]]+\][^（(]*)/);
+      const koOnly = km ? km[1] : e;
       const zm = e.match(/[（(]([^）)]+)[）)]/);
-      if(zm) b += `<div class="card-essay">${zm[1]}</div>`;
+      b += `<div class="card-essay">${koOnly}${zm?`<br><span class="zh-trans">${zm[1]}</span>`:""}</div>`;
     });
     b += `</div></div>`;
   }
@@ -2660,7 +2700,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v30.2");
+document.title = document.title.replace("TOPIK","TOPIK v30.3");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
