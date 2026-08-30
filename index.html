@@ -138,26 +138,33 @@
 
   @media(max-width:600px){.choices{grid-template-columns:1fr}.q-word{font-size:1.8rem}.container{padding:0 10px}}
 
-  /* ============ 🎴 词卡学习（v30） ============ */
+  /* ============ 🎴 词卡学习（v30.2 3D 翻卡） ============ */
   #card-overlay{position:fixed;inset:0;background:#FBF9F5;z-index:999;display:flex;flex-direction:column;overflow-y:auto}
   #card-topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #EFEAE2}
   #card-progress{font-size:.85rem;color:#8A8578;font-weight:700}
   #card-close-btn{border:none;background:#EFEAE2;color:#6B6659;font-size:.82rem;font-weight:700;padding:7px 16px;border-radius:20px;cursor:pointer}
   #card-close-btn:hover{background:#E4DED3}
   #card-colorbar{height:5px;width:100%}
-  #card-inner{flex:1;max-width:640px;width:100%;margin:0 auto;padding:28px 24px 40px}
+  /* 3D 翻卡容器 */
+  #card-stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px 20px;perspective:1600px}
+  #card-inner{position:relative;width:100%;max-width:560px;min-height:520px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1)}
+  #card-inner.card-flipped{transform:rotateY(180deg)}
+  .card-face{position:absolute;top:0;left:0;right:0;background:#fff;border-radius:20px;box-shadow:0 2px 8px rgba(40,30,20,.04),0 8px 24px rgba(40,30,20,.06),0 24px 60px rgba(40,30,20,.10);padding:32px 34px;backface-visibility:hidden;-webkit-backface-visibility:hidden;animation:card-fade .35s ease-out}
+  @keyframes card-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .card-back{transform:rotateY(180deg)}
   .card-hint{font-size:.78rem;color:#A8A296;text-align:center;margin-bottom:18px}
   .card-status-row{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
   .card-status-chip{font-size:.78rem;font-weight:800;padding:3px 12px;border-radius:14px}
   .card-curve{font-size:.8rem;color:#8A8578;font-weight:600}
-  .card-ko{font-size:2.6rem;font-weight:800;letter-spacing:.02em;line-height:1.2;margin-bottom:8px;color:#2A2826}
+  .card-ko-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .card-ko{font-size:2.6rem;font-weight:800;letter-spacing:.02em;line-height:1.2;color:#2A2826}
+  .card-ko-pron-inline{font-size:.86rem;color:#A8A296;font-weight:600;letter-spacing:.02em;font-family:ui-monospace,Menlo,monospace}
   .card-posline{font-size:.9rem;color:#98917F;margin-bottom:20px}
   .card-posline .card-zh-main{color:#4A463D;font-weight:600;margin-left:4px}
-  .card-block{background:#fff;border:1px solid #EFEAE2;border-radius:14px;padding:14px 18px;margin-bottom:12px}
-  .card-block-title{font-size:.76rem;font-weight:800;color:#B9B2A3;letter-spacing:.05em;margin-bottom:7px}
-  .card-block-body{font-size:.92rem;line-height:1.75;color:#3D3A33}
+  .card-block{border:1px solid #EFEAE2;border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#FBF9F5}
+  .card-block-title{font-size:.74rem;font-weight:800;color:#B9B2A3;letter-spacing:.05em;margin-bottom:6px;text-transform:uppercase}
+  .card-block-body{font-size:.92rem;line-height:1.7;color:#3D3A33}
   .card-block-body .zh-trans{color:#8A8578;font-size:.86rem}
-  .card-ko-pron{font-weight:800;color:#A6763C;font-size:1.05rem}
   .card-conj span{display:inline-block;background:#F5F1E8;border-radius:8px;padding:3px 10px;margin:2px 4px 2px 0;font-size:.84rem;font-weight:600;color:#5C5648}
   .card-colloc span{display:inline-block;background:#EDF1F6;color:#4A6478;border-radius:10px;padding:3px 11px;margin:2px 4px 2px 0;font-size:.82rem;font-weight:600}
   .card-footer{position:sticky;bottom:0;background:linear-gradient(to top,#FBF9F5 70%,rgba(251,249,245,0));padding:14px 20px 22px;display:flex;gap:10px;justify-content:center}
@@ -168,6 +175,7 @@
   .card-btn.reveal{background:#A6763C;color:#fff}
   .card-essay{background:#F7F3EC;border-left:3px solid #C9B48C;border-radius:0 10px 10px 0;padding:10px 14px;margin:6px 0;font-size:.88rem;line-height:1.7}
   .card-essay .zh-trans{color:#8A8578}
+  .card-back-title{font-size:.84rem;font-weight:800;color:#A6763C;letter-spacing:.05em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
   /* 范围选择 */
   #card-range-box{background:#F5F1E8;border:1px dashed #D8CFBC;border-radius:12px;padding:10px 14px;margin-top:8px}
   .card-range-opts{display:flex;flex-wrap:wrap;gap:6px}
@@ -187,9 +195,6 @@
     <div class="st"><div class="n" id="st-today">0</div><div class="l">今日复习</div></div>
     <div class="st"><div class="n" id="st-view">0</div><div class="l">今日浏览</div></div>
   </div>
-  <div style="text-align:center;margin-top:14px;">
-    <button class="btn" style="background:var(--purple);color:#fff;font-weight:800;padding:11px 28px;border-radius:24px;font-size:.92rem;box-shadow:0 4px 14px rgba(124,77,255,.25);" onclick="openCardMode('focus')">🎴 开始词卡学习（先回忆后看答案）</button>
-  </div>
 </div>
 
 <nav><div class="nav-inner">
@@ -198,6 +203,7 @@
   <button class="nav-btn" onclick="showPanel('review')">🧠 复习</button>
   <button class="nav-btn" onclick="showPanel('sync')">🔄 日志同步</button>
   <button class="nav-btn" onclick="showPanel('bank')">📚 词库</button>
+  <button class="nav-btn" onclick="openCardMode('focus')">🎴 词卡</button>
 </div></nav>
 
 <div class="container">
@@ -1792,6 +1798,12 @@ function curveText(w){
   const overdue = due <= t;
   return `📍 记忆曲线：已完成 ${nextIdx}/10 · 下一阶段 ${stage}${overdue?"（已到期 ⏰）":"（"+due+" 到期）"}`;
 }
+function splitKoZh(s){
+  if(!s) return {ko:"", zh:""};
+  const zh = (s.match(/\([^)]+\)/g) || []).map(m=>m.slice(1,-1)).join(" · ");
+  const ko = s.replace(/\([^)]*\)/g, "").replace(/\s*vs\s*/g, " · ").replace(/^[·\s]+|[·\s]+$/g, "").trim();
+  return {ko, zh};
+}
 function renderCard(){
   const w = cardQueue[cardIndex];
   if(!w) return;
@@ -1801,64 +1813,81 @@ function renderCard(){
   document.getElementById("card-colorbar").style.background = color;
   document.getElementById("card-answer-btn").textContent = cardShown ? "🙈 隐藏答案" : "👁 显示答案";
   document.getElementById("card-answer-btn").className = "card-btn " + (cardShown ? "ghost" : "reveal");
-  const inner = document.getElementById("card-inner");
-  // 例句：韩文常显，中文（（）内）答案后显示
+  const front = document.getElementById("card-front");
+  const back = document.getElementById("card-back");
+  // 解析韩文/中文分离
   const exampleRaw = w.example || "";
   const exMatch = exampleRaw.match(/^([^（(]+)/);
   const exKo = exMatch ? exMatch[1].trim() : exampleRaw;
   const exZh = exampleRaw.includes("（") ? exampleRaw.slice(exampleRaw.indexOf("（")) : (exampleRaw.includes("(") ? exampleRaw.slice(exampleRaw.indexOf("(")) : "");
-  // 近义/反义/同源：主要是中文辨析，答案后显示
-  const synZh = w.syn ? w.syn.split(/[|｜]/).slice(0,3).join(" · ") : "";
-  const antZh = w.ant ? w.ant.split(/[|｜]/).slice(0,3).join(" · ") : "";
-  const cogZh = w.cognate ? w.cognate.split(/[|｜]/).slice(0,4).join(" · ") : "";
-  // 大作文句式
+  const syn = splitKoZh(w.syn);
+  const ant = splitKoZh(w.ant);
+  const cog = splitKoZh(w.cognate);
   const essayArr = Array.isArray(w.essay) ? w.essay.slice(0,2) : [];
-  let html = `<div class="card-hint">${cardShown?"🔓 答案已显示 · 认真看一遍再翻下一张":"🤔 先回忆这个词的意思，再点「显示答案」"}</div>`;
-  // 状态行
-  html += `<div class="card-status-row">
+  // ========== 正面（韩文） ==========
+  let f = `<div class="card-status-row">
     <span class="card-status-chip" style="background:${color}20;color:${color};">${label}</span>
     <span class="card-curve">${curveText(w)}</span>
   </div>`;
-  // 韩文 + 词性 + 释义（释义答案后显示）
-  html += `<div class="card-ko">${w.ko}</div>`;
-  html += `<div class="card-posline">${w.pos||""}${cardShown&&w.zh?`<span class="card-zh-main">· ${w.zh}</span>`:""}</div>`;
-  // 发音 + 活用
+  // 词条 + 内联发音（仅音变时显示）
+  let koLine = `<div class="card-ko-row"><span class="card-ko">${w.ko}</span>`;
   if(w.pron){
-    html += `<div class="card-block"><div class="card-block-title">实际发音 · 音变后读音</div><div class="card-block-body"><span class="card-ko-pron">${w.pron}</span></div></div>`;
+    const pronClean = w.pron.replace(/[\[\]]/g, "");
+    koLine += `<span class="card-ko-pron-inline">[${pronClean}]</span>`;
   }
+  koLine += `</div>`;
+  f += koLine;
+  f += `<div class="card-posline">${w.pos||""}</div>`;
+  // 活用型（不再包含发音）
   if(w.conj && w.conj.length){
-    html += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${w.conj.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+    f += `<div class="card-block"><div class="card-block-title">活用型（해요体 / 过去式 / 冠形词）</div><div class="card-block-body card-conj">${w.conj.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
   }
-  // 例句
-  if(exampleRaw){
-    html += `<div class="card-block"><div class="card-block-title">例句</div><div class="card-block-body">${exKo}${cardShown&&exZh?` <span class="zh-trans">${exZh}</span>`:""}</div></div>`;
+  if(exKo){
+    f += `<div class="card-block"><div class="card-block-title">例句</div><div class="card-block-body">${exKo}</div></div>`;
   }
-  // 搭配
   if(w.colloc && w.colloc.length){
-    html += `<div class="card-block"><div class="card-block-title">常见搭配</div><div class="card-block-body card-colloc">${w.colloc.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
+    f += `<div class="card-block"><div class="card-block-title">常见搭配</div><div class="card-block-body card-colloc">${w.colloc.map(c=>`<span>${c}</span>`).join("")}</div></div>`;
   }
-  // 近义/反义/同源（答案后显示——中文辨析）
-  if(cardShown){
-    if(synZh) html += `<div class="card-block"><div class="card-block-title">近义词辨析</div><div class="card-block-body">${synZh}</div></div>`;
-    if(antZh) html += `<div class="card-block"><div class="card-block-title">反义词</div><div class="card-block-body">${antZh}</div></div>`;
-    if(cogZh) html += `<div class="card-block"><div class="card-block-title">同源词</div><div class="card-block-body">${cogZh}</div></div>`;
-    if(w.hanja && !w.hanja.includes("固有")) html += `<div class="card-block"><div class="card-block-title">汉字词源</div><div class="card-block-body">${w.hanja}</div></div>`;
-    if(essayArr.length){
-      html += `<div class="card-block"><div class="card-block-title">✍️ 大作文句式</div><div class="card-block-body">`;
-      essayArr.forEach(e=>{
-        const m = e.match(/^(\[[^\]]+\][^\（(]*)(（[^）]+）|\([^)]+\))?$/);
-        if(m) html += `<div class="card-essay">${m[1]}<br><span class="zh-trans">${m[2]||""}</span></div>`;
-        else html += `<div class="card-essay">${e}</div>`;
-      });
-      html += `</div></div>`;
-    }
+  if(syn.ko) f += `<div class="card-block"><div class="card-block-title">近义词</div><div class="card-block-body">${syn.ko}</div></div>`;
+  if(ant.ko) f += `<div class="card-block"><div class="card-block-title">反义词</div><div class="card-block-body">${ant.ko}</div></div>`;
+  if(cog.ko) f += `<div class="card-block"><div class="card-block-title">同源词</div><div class="card-block-body">${cog.ko}</div></div>`;
+  if(w.hanja && !w.hanja.includes("固有")) f += `<div class="card-block"><div class="card-block-title">汉字词源</div><div class="card-block-body">${w.hanja}</div></div>`;
+  if(w.essayFreq && essayArr.length){
+    f += `<div class="card-block"><div class="card-block-title">✍️ 大作文句式</div><div class="card-block-body">`;
+    essayArr.forEach(e=>{
+      const m = e.match(/^(\[[^\]]+\][^（(]*)/);
+      f += `<div class="card-essay">${m?m[1]:e}</div>`;
+    });
+    f += `</div></div>`;
   }
-  inner.innerHTML = html;
+  // ========== 背面（中文） ==========
+  let b = `<div class="card-back-title">📖 答案（中文释义）</div>`;
+  if(w.zh) b += `<div class="card-block"><div class="card-block-title">中文含义</div><div class="card-block-body" style="font-size:1.05rem;font-weight:600;">${w.zh}</div></div>`;
+  if(exZh) b += `<div class="card-block"><div class="card-block-title">例句翻译</div><div class="card-block-body zh-trans">${exZh}</div></div>`;
+  if(syn.zh) b += `<div class="card-block"><div class="card-block-title">近义辨析</div><div class="card-block-body">${syn.zh}</div></div>`;
+  if(ant.zh) b += `<div class="card-block"><div class="card-block-title">反义</div><div class="card-block-body">${ant.zh}</div></div>`;
+  if(cog.zh) b += `<div class="card-block"><div class="card-block-title">同源</div><div class="card-block-body">${cog.zh}</div></div>`;
+  if(w.essayFreq && essayArr.length){
+    b += `<div class="card-block"><div class="card-block-title">✍️ 作文句式翻译</div><div class="card-block-body">`;
+    essayArr.forEach(e=>{
+      const zm = e.match(/[（(]([^）)]+)[）)]/);
+      if(zm) b += `<div class="card-essay">${zm[1]}</div>`;
+    });
+    b += `</div></div>`;
+  }
+  front.innerHTML = f;
+  back.innerHTML = b;
+  document.getElementById("card-inner").classList.toggle("card-flipped", cardShown);
 }
-function toggleCardAnswer(){ cardShown=!cardShown; renderCard(); }
+function toggleCardAnswer(){
+  cardShown=!cardShown;
+  document.getElementById("card-inner").classList.toggle("card-flipped", cardShown);
+  document.getElementById("card-answer-btn").textContent = cardShown ? "🙈 隐藏答案" : "👁 显示答案";
+  document.getElementById("card-answer-btn").className = "card-btn " + (cardShown ? "ghost" : "reveal");
+}
 function nextCard(){
   if(cardIndex < cardQueue.length-1){ cardIndex++; cardShown=false; renderCard(); markViewed(); }
-  else closeCardMode(true);
+  else closeCardMode();
 }
 function prevCard(){ if(cardIndex>0){ cardIndex--; cardShown=false; renderCard(); } }
 // 当日浏览计数（不影响测试曲线，仅正反馈）
@@ -1871,10 +1900,10 @@ function markViewed(){
   data.viewSession.count++;
   saveData(); updateStats();
 }
-function closeCardMode(showStats){
+function closeCardMode(){
   document.getElementById("card-overlay").classList.add("hidden");
   document.body.style.overflow="";
-  if(showStats && cardViewed.size){
+  if(cardViewed.size){
     const t=today();
     const total = (data.viewSession && data.viewSession.date===t) ? data.viewSession.count : cardViewed.size;
     const reviewed = dueWords().length;
@@ -2631,7 +2660,7 @@ function closeWordDetail(){
 // ================= 初始化 =================
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
-document.title = document.title.replace("TOPIK","TOPIK v30.1");
+document.title = document.title.replace("TOPIK","TOPIK v30.2");
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>{
@@ -2661,14 +2690,19 @@ updateStats();
   <div style="background:#fff;border-radius:16px;padding:24px;max-height:85vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.2);width:100%;"></div>
 </div>
 
-<!-- 🎴 词卡学习覆盖层（v30） -->
+<!-- 🎴 词卡学习覆盖层（v30.2 3D 翻卡） -->
 <div id="card-overlay" class="hidden">
   <div id="card-topbar">
     <span id="card-progress">词卡 1 / 0</span>
     <button id="card-close-btn" onclick="closeCardMode()">✕ 关闭</button>
   </div>
   <div id="card-colorbar"></div>
-  <div id="card-inner"></div>
+  <div id="card-stage">
+    <div id="card-inner">
+      <div class="card-face card-front" id="card-front"></div>
+      <div class="card-face card-back" id="card-back"></div>
+    </div>
+  </div>
   <div class="card-footer">
     <button class="card-btn ghost" onclick="prevCard()">← 上一个</button>
     <button class="card-btn reveal" id="card-answer-btn" onclick="toggleCardAnswer()">👁 显示答案</button>
