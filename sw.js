@@ -1,7 +1,6 @@
-// Service Worker：TOPIK 词汇系统 v7
-// v7：升级缓存名强制所有旧 SW 客户端失效 + 重载，确保 v30.9 扁平化词卡生效
-// 注意：v7 不再在 activate 中自动 client.navigate，避免反复重载；改由 HTML ?v=xxx 触发
-const CACHE_NAME = 'topik-vocab-v7';
+// Service Worker：TOPIK 词汇系统 v8
+// v8：缓存名升级，强制所有旧 SW 客户端（v6/v7）失效；HTML 永远走网络
+const CACHE_NAME = 'topik-vocab-v8';
 const ASSETS = [
   './manifest.webmanifest',
   './icon-192.png',
