@@ -1089,8 +1089,8 @@ BASE_WORDS.forEach(w=>{
 Object.keys(DETAILS_EXTRA).forEach(ko=>{
   if(!DATA_SOURCE[ko]) DATA_SOURCE[ko]={zh:"",pos:"",hanja:""};
 });
-if (!data || !data.words || !data.words.length) {
-  // 初始化内置词库
+if (!data || !Array.isArray(data.words) || !data.words.length || !data.words.every(w=>w && typeof w==="object" && w.ko)) {
+  // 初始化内置词库（v30.10：更严格校验——words 必须是非空的对象数组，否则重建，避免旧数据损坏导致整个 JS 崩溃）
   data = { words: BASE_WORDS.map(buildWord), meta: { created: today() } };
   saveData();
 } else {
@@ -2830,9 +2830,18 @@ function closeWordDetail(){
 document.getElementById("q-input").addEventListener("keydown",e=>{ if(e.key==="Enter") submitAnswer(); });
 // 版本标记（用户/我确认浏览器加载的版本）：页面标题后追加
 document.title = document.title.replace("TOPIK","TOPIK v30.9.1");
-// 错误捕获：把任何 JS 错误显示到 console（调试用，部署版保留）
+// 错误捕获：任何 JS 错误显示为页面顶部红条（用户无 DevTools 也能看到，便于诊断）
 window.addEventListener("error", (e)=>{
   console.error("[JS ERROR]", e.error || e.message);
+  const msg = (e.error && e.error.message) ? e.error.message : e.message;
+  let bar = document.getElementById("err-bar");
+  if(!bar){
+    bar = document.createElement("div");
+    bar.id = "err-bar";
+    bar.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:#DC2626;color:#fff;padding:10px 16px;font-size:.85rem;font-weight:700;font-family:Menlo,monospace;box-shadow:0 2px 8px rgba(0,0,0,.3);overflow-wrap:anywhere;";
+    document.body.prepend(bar);
+  }
+  bar.textContent = "❌ JS 错误：" + msg;
 });
 // 注册 Service Worker（PWA 离线可用）
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
